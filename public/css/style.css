@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body {
+    background-color: #333;
+    color: #eee;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18pt;
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+.ReactTabs__TabList {
+    font-size: 1.5em;
+    /*position: fixed;*/
+}
+input, textarea {
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 0;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+    padding: 0.4em;
+    margin: 0.6em 0em;
+    width: 95%;
+}
+span, a, button {
+    margin: 0 0.2em 0 0;
+}
+.first_container {
+    padding: 10px 2em;
+    padding-bottom: 140%; /*help group color extend full screen*/
+}
+@media screen and (max-width: 500px) {
+/* applies only if the screen is narrower than 500px */
+  .first_container {
+    padding: 10px 1em;
+    padding-bottom: 140%;
+  }
+}
+
+.user_name {
+    font-size: 1em;
+}
+.userUID {
+    font-size: 0.4em;
+}
+
+.signal {
+    padding: 0.2em 0.2em 0.3em 0.3em;
+    cursor: pointer;
+}
+button.vote_button {
+    background: url('/img/like_white_sm_26.png') no-repeat 0px center;
+    font-family: inherit;
+    font-size: 0.5em;
+    min-width: 22px;
+    min-height: 22px;
+    cursor: pointer;
+    padding: 10px 5px 2px 5px;
+    margin-right: 0.3em;
+    text-align:center;
+    color: #000;
+    /*border: solid 1px;*/
+    border: none;
+    opacity: 0.8;
+    outline: none;
+    white-space: nowrap;
+    _background-image: url('/img/like_white_sm.png');
+    _background-color: transparent; /* make the button transparent */
+    _background-repeat: no-repeat;  /* make the background image appear only once */
+    _background-position: 0px 0px;  /* equivalent to 'top left' */
+}
+button.modify_button {
+    background: url('/img/edit_white_sm.png') no-repeat 0px center;
+    font-family: inherit;
+    font-size: inherit;
+    color: #000;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 9px 7px 3px 3px;
+    cursor: pointer;
+    /*border: solid 1px;*/
+    border: none;
+    opacity: 0.8;
+    outline: none;
+}
+a.modify_button _img {
+    width: 30px;
+    height: 30px;
+    /*border: solid 1px;*/
+    cursor: pointer;        /* make the cursor like hovering over an <a> element */
+}
+a.vote_button _img {
+    width: 36px;
+    height: 36px;
+    /*border: solid 1px;*/
+    cursor: pointer;        /* make the cursor like hovering over an <a> element */
+    padding-right: 8px;
+    margin-bottom: -6px;
+}
+.signal .user_name {
+    /*font-size: 0.5em;*/
+    opacity: 0.5;
+    margin-left: 1em;
+    margin-right: 0.3em;
+    color: #fff;
+}
+.signal .UID {
+    display: none;
+    opacity: 0.3;
+}
+
+.signals .signal {
+    position: relative;
+     /*required for percentage underlay */
+}
+.my_signal {
+    opacity: 0.5;
+    /*font-size: 0.9em;*/
+    padding-bottom: 0.6em;
+}
+.signals .vote_count {
+    padding-right:10px;
+}
+.signals .vote_percent {
+    width:0%;
+    height:100%;
+    background-color:black;
+    top: 0; left:0;
+    bottom: 0;
+    position: absolute;
+    z-index: -1;
+}
+.signals .myVote {
+    background-color: rgba(33,102,33,0.8);
+}
+.signals_group_a {
+    background-color: rgba(0,0,102,0.5);
+}
+.signals_group_b {
+    background-color: rgba(102,0,0,0.5);
+}
+
+
+/*https://facebook.github.io/react/docs/animation.html*/
+/*.example-enter {
+  opacity: 0.01;
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.example-leave {
+  opacity: 1;
+}
+
+.example-leave.example-leave-active {
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
+}
+.example-appear {
+  opacity: 0.01;
+}
+
+.example-appear.example-appear-active {
+  opacity: 1;
+  transition: opacity .5s ease-in;
+}*/
