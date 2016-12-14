@@ -266,7 +266,7 @@ var epoch = (function () {
 }())
 
 
-if (process.stdout.isTTY)) {
+if (process.stdout.isTTY) {
 	var stdin = process.openStdin()
 	stdin.setRawMode(true)
 	stdin.resume()
