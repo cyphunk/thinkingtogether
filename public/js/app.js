@@ -187,7 +187,7 @@ var Voter = _react2['default'].createClass({
             // signals[key].vote_count = vote_count;
         });
         console.log('Voter.addvote_count - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
+        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys: function organize_signal_keys(keys) {
         var signals = this.props.signals;
@@ -389,7 +389,7 @@ var App = _react2['default'].createClass({
         socket.on('user:left', this._user_left);
         socket.on('connection', this._on_connection);
         socket.on('admin:command', this._admin_command);
-        socket.on('epoch:activesignals', this._epoch_active_signals);
+        socket.on('epoch:active_signals', this._epoch_active_signals);
     },
     _on_connection: function _on_connection(data) {
         console.log('App._on_connection() - sessionID ' + data.handshake);
@@ -431,12 +431,14 @@ var App = _react2['default'].createClass({
 
         // only change state when vote is new
         if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-            console.log("App._vote_recieve() - setState");
+            console.log("App._vote_recieve() - set_state");
             votes[data.voter] = data.signal;
             this.setState({ votes: votes });
         }
     },
     _user_joined: function _user_joined(data) {
+        console.log('App.user_joined()');
+        console.log('App.user_joined() - data', data);
         var _state = this.state;
         var users = _state.users;
         var signals = _state.signals;
@@ -466,6 +468,10 @@ var App = _react2['default'].createClass({
     },
 
     _user_left: function _user_left(data) {
+        console.log('App.user_left()');
+        if (!data.uid) return;
+        console.log('App.user_left() - data', data);
+
         var _state2 = this.state;
         var users = _state2.users;
         var signals = _state2.signals;
@@ -525,7 +531,7 @@ var App = _react2['default'].createClass({
     },
     _admin_command: function _admin_command(command) {
         console.log('App._admin_command() - data', command);
-        if (command.method == 'setState') {
+        if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
                 var group_mode = this.state.group_mode;
 
@@ -533,6 +539,8 @@ var App = _react2['default'].createClass({
                 this.setState({ group_mode: group_mode });
                 console.log('App._admin_command() - state', this.state);
             }
+        } else if (command.method == 'reload_page') {
+            window.location.reload(false);
         }
     },
     _epoch_active_signals: function _epoch_active_signals(active_signals) {
@@ -540,19 +548,32 @@ var App = _react2['default'].createClass({
         var _state4 = this.state;
         var user = _state4.user;
         var signals = _state4.signals;
+        var votes = _state4.votes;
 
         // TODO Show message to the user when it was their signal that won
         if (active_signals.a.user && active_signals.a.user.uid) {
             console.log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid);
             delete signals[active_signals.a.user.uid]; //.text = ''
-            this.setState({ signals: signals });
-            if (active_signals.a.user.uid == user.uid) this.setState({ signal: '' });
+            Object.keys(votes).forEach(function (k) {
+                if (votes[k] == active_signals.a.user.uid) delete votes[k];
+            });
+            this.setState({ signals: signals, votes: votes });
+            if (active_signals.a.user.uid == user.uid) {
+                console.log('App._epoch_active_signals is us', _config2['default'].epoch.winner_switches_to_write_tab);
+                if (_config2['default'].epoch.winner_switches_to_write_tab) this.setState({ signal: '', selected_tab: 0 });else this.setState({ signal: '' });
+            }
         }
         if (active_signals.b.user && active_signals.b.user.uid) {
             console.log('App._epoch_active_signals - b key', active_signals.b.user.uid, user.uid);
             delete signals[active_signals.b.user.uid]; //.text = ''
-            this.setState({ signals: signals });
-            if (active_signals.b.user.uid == user.uid) this.setState({ signal: '' });
+            Object.keys(votes).forEach(function (k) {
+                if (votes[k] == active_signals.b.user.uid) delete votes[k];
+            });
+            this.setState({ signals: signals, votes: votes });
+            if (active_signals.b.user.uid == user.uid) {
+                console.log('App._epoch_active_signals is us', _config2['default'].epoch.winner_switches_to_write_tab);
+                if (_config2['default'].epoch.winner_switches_to_write_tab) this.setState({ signal: '', selected_tab: 0 });else this.setState({ signal: '', selected_tab: 0 });
+            }
         }
     },
     on_tab_select: function on_tab_select(selected_tab, last) {
@@ -566,8 +587,11 @@ var App = _react2['default'].createClass({
             var signals = _state5.signals;
             var signal = _state5.signal;
 
-            if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
-                signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
+            //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            if (signal.text.slice(-1) == "\n" || signal.text.match(/\. *$/g) !== null) {
+                signal = signal.replace(/\n/g, '').replace(/\./g, '');
+                this.setState({ signal: signal });
             }
         }
     },
@@ -645,10 +669,9 @@ config.stage = {};
 config.epoch = {};
 config.admin = {};
 
-config.server.port = 3000;
+config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
-// set to cause vote to update
-// config.server.vote_updates_signals = true;
+config.server.load_data_files = true; // load .data/*.json on start?
 
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
@@ -663,17 +686,17 @@ config.writer.max_chars = 140;
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.stage.opacity_step = 0.2; // dec opacity on signal list by this much with Signal on top starting at 1.0
+config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 // for stage and voter:
 // on bang signals state will be cleared
 config.epoch.wait_for_bang_to_start = true; // false then just go
-config.epoch.seed_length = 30; // time to vote
+config.epoch.seed_length = 10; // time to vote
 config.epoch.pause_length = 15; // time before voter faded in
 config.epoch.pause_forced = false; // when true client interface fade out all but count down
-// config.epoch.pause_show_progress = true; // show progress cont down
-config.epoch.start_new_epoch_after_pause = true; // if false forces admin bang.
-config.server.remove_signal_after_selected = true;
+// config.epoch.pause_show_progress = true  // show progress cont down
+config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
+config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

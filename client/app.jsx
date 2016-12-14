@@ -147,7 +147,7 @@ var Voter = React.createClass({
             // signals[key].vote_count = vote_count;
         });
         console.log('Voter.addvote_count - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
+        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys(keys) {
         var signals = this.props.signals;
@@ -305,7 +305,7 @@ var App = React.createClass({
 		socket.on('user:left', this._user_left);
         socket.on('connection', this._on_connection);
         socket.on('admin:command', this._admin_command);
-        socket.on('epoch:activesignals', this._epoch_active_signals)
+        socket.on('epoch:active_signals', this._epoch_active_signals)
 	},
     _on_connection(data) {
         console.log('App._on_connection() - sessionID ' + data.handshake);
@@ -342,12 +342,14 @@ var App = React.createClass({
         var {votes} = this.state;
         // only change state when vote is new
         if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-            console.log("App._vote_recieve() - setState");
+            console.log("App._vote_recieve() - set_state");
             votes[data.voter] = data.signal;
             this.setState({votes});
         }
     },
 	_user_joined(data) {
+        console.log('App.user_joined()')
+        console.log('App.user_joined() - data', data)
 		var {users, signals} = this.state;
 		var {user} = data;
         if (this.state.user.uid === data.user.uid) {
@@ -374,6 +376,11 @@ var App = React.createClass({
 	},
 
 	_user_left(data) {
+        console.log('App.user_left()')
+        if (!data.uid)
+            return
+        console.log('App.user_left() - data', data)
+
 		var {users, signals} = this.state;
         var {user} = data;
         if (config.voter.show_joined_messages) {
@@ -427,7 +434,7 @@ var App = React.createClass({
     },
     _admin_command(command) {
         console.log('App._admin_command() - data', command);
-        if (command.method == 'setState') {
+        if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
                 var {group_mode} = this.state;
                 group_mode = command.value;
@@ -435,25 +442,44 @@ var App = React.createClass({
                 console.log('App._admin_command() - state', this.state);
             }
         }
-
+        else
+        if (command.method == 'reload_page') {
+            window.location.reload(false);
+        }
     },
     _epoch_active_signals(active_signals) {
         console.log('App._epoch_active_signals() - active_signals', active_signals)
-        var {user, signals} = this.state;
+        var {user, signals, votes} = this.state;
         // TODO Show message to the user when it was their signal that won
         if (active_signals.a.user && active_signals.a.user.uid) {
             console.log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid)
             delete signals[active_signals.a.user.uid] //.text = ''
-            this.setState({signals})
-            if (active_signals.a.user.uid == user.uid)
-                this.setState({signal: ''})
+            Object.keys(votes).forEach((k) => {
+                if (votes[k] == active_signals.a.user.uid)
+                    delete votes[k] })
+            this.setState({signals,votes})
+            if (active_signals.a.user.uid == user.uid) {
+                console.log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
+                if (config.epoch.winner_switches_to_write_tab)
+                    this.setState({signal: '',                 selected_tab: 0 })
+                else
+                    this.setState({signal: ''})
+            }
         }
         if (active_signals.b.user && active_signals.b.user.uid) {
             console.log('App._epoch_active_signals - b key', active_signals.b.user.uid, user.uid)
             delete signals[active_signals.b.user.uid] //.text = ''
-            this.setState({signals})
-            if (active_signals.b.user.uid == user.uid)
-                this.setState({signal: ''})
+            Object.keys(votes).forEach((k) => {
+                if (votes[k] == active_signals.b.user.uid)
+                    delete votes[k] })
+            this.setState({signals, votes})
+            if (active_signals.b.user.uid == user.uid) {
+                console.log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
+                if (config.epoch.winner_switches_to_write_tab)
+                    this.setState({signal: '',                 selected_tab: 0 })
+                else
+                    this.setState({signal: '',                 selected_tab: 0 })
+            }
         }
     },
     on_tab_select (selected_tab,last) {
@@ -462,9 +488,11 @@ var App = React.createClass({
         // remove \n and .
         if (selected_tab == 0) {
             var {signal, signals, signal} = this.state;
-
-            if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
-                signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
+            //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            if (signal.text.slice(-1) == "\n" || signal.text.match(/\. *$/g) !== null) {
+                signal = signal.replace(/\n/g,'').replace(/\./g,'');
+                    this.setState({signal});
             }
         }
 

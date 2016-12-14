@@ -30,287 +30,305 @@ var _config2 = _interopRequireDefault(_config);
 var socket = io.connect();
 
 var App = _react2['default'].createClass({
-    displayName: 'App',
+	displayName: 'App',
 
-    getInitialState: function getInitialState() {
-        return {
-            users: [],
-            signals: {},
-            votes: {},
-            group_mode: false,
-            stage: _config2['default'].stage,
-            active_signals: {
-                a: { text: '', user: { uid: null, name: '' } },
-                b: { text: '', user: { uid: null, name: '' } }
-            },
-            progress: {
-                percent: -1,
-                autoIncrement: false,
-                intervalTime: 0
-            }
-        };
-    },
+	getInitialState: function getInitialState() {
+		return {
+			users: [],
+			signals: {},
+			votes: {},
+			group_mode: false,
+			stage: _config2['default'].stage,
+			active_signals: {
+				a: { text: '', user: { uid: null, name: '' } },
+				b: { text: '', user: { uid: null, name: '' } }
+			},
+			progress: {
+				percent: -1,
+				autoIncrement: false,
+				intervalTime: 0
+			}
+		};
+	},
 
-    componentDidMount: function componentDidMount() {
-        socket.on('init', this._initialize);
-        socket.on('send:signal', this._signal_recieve);
-        socket.on('send:vote', this._vote_recieve);
-        socket.on('connection', this._on_connection);
-        socket.on('admin:command', this._admin_command);
-        socket.on('admin:stage', this._admin_stage);
-        socket.on('epoch:start', this._epoch_start);
-        socket.on('epoch:stop_progress', this._epoch_stop_progress);
-        socket.on('epoch:activesignals', this._epoch_active_signals);
-    },
-    _on_connection: function _on_connection(data) {
-        console.log('App._on_connection()');
-        console.log('App._on_connection - data.handshake sessionID', data.handshake);
-    },
-    _initialize: function _initialize(data) {
-        console.log('App._initialize()');
-        console.log('App._initialize - data', data);
-        // console.log('App._initialize() - data.handshake', data.handshake);
-        var users = data.users;
-        var signals = data.signals;
-        var votes = data.votes;
-        var group_mode = data.group_mode;
-        var stage = data.stage;
+	componentDidMount: function componentDidMount() {
+		socket.on('init', this._initialize);
+		socket.on('send:signal', this._signal_recieve);
+		socket.on('send:vote', this._vote_recieve);
+		socket.on('connection', this._on_connection);
+		socket.on('admin:command', this._admin_command);
+		socket.on('admin:stage', this._admin_stage);
+		socket.on('epoch:start', this._epoch_start);
+		socket.on('epoch:stop_progress', this._epoch_stop_progress);
+		socket.on('epoch:active_signals', this._epoch_active_signals);
+		socket.on('epoch:active_signals_clear', this._epoch_active_signals_clear);
+	},
+	_on_connection: function _on_connection(data) {
+		console.log('App._on_connection()');
+		console.log('App._on_connection - data.handshake sessionID', data.handshake);
+	},
+	_initialize: function _initialize(data) {
+		console.log('App._initialize()');
+		console.log('App._initialize - data', data);
+		// console.log('App._initialize() - data.handshake', data.handshake);
+		var users = data.users;
+		var signals = data.signals;
+		var votes = data.votes;
+		var group_mode = data.group_mode;
+		var stage = data.stage;
+		var active_signals = data.active_signals;
 
-        this.setState({ users: users, signals: signals, votes: votes, group_mode: group_mode, stage: stage });
-        console.log('App._initialize - state after setState', this.state);
-    },
-    _signal_recieve: function _signal_recieve(data) {
-        console.log('App._signal_recieve()');
-        console.log('App._signal_recieve - data', data);
-        var signals = this.state.signals;
+		this.setState({ users: users, signals: signals, votes: votes, group_mode: group_mode, stage: stage, active_signals: active_signals });
+		console.log('App._initialize - state after set_state', this.state);
+	},
+	_signal_recieve: function _signal_recieve(data) {
+		console.log('App._signal_recieve()');
+		console.log('App._signal_recieve - data', data);
+		var signals = this.state.signals;
 
-        if (!signals[data.user.uid] || signals[data.user.uid] !== data) {
-            signals[data.user.uid] = data;
-            this.setState({ signals: signals });
-        }
-        console.log('App._signal_recieve - debug state', this.state);
-        console.log('App._signal_recieve - debug data', data);
-    },
-    _vote_recieve: function _vote_recieve(data) {
-        console.log('App._vote_recieve()');
-        console.log('App._vote_recieve - data', data);
-        var votes = this.state.votes;
+		if (!signals[data.user.uid] || signals[data.user.uid] !== data) {
+			signals[data.user.uid] = data;
+			this.setState({ signals: signals });
+		}
+		console.log('App._signal_recieve - debug state', this.state);
+		console.log('App._signal_recieve - debug data', data);
+	},
+	_vote_recieve: function _vote_recieve(data) {
+		console.log('App._vote_recieve()');
+		console.log('App._vote_recieve - data', data);
+		var votes = this.state.votes;
 
-        // only change state when vote is new
-        if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-            console.log('App._vote_recieve - vote is new. setState');
-            votes[data.voter] = data.signal;
-            this.setState({ votes: votes });
-        }
-    },
-    _admin_command: function _admin_command(command) {
-        console.log('App._admin_command()');
-        console.log('App._admin_command - data', command);
-        if (command.method == 'setState') {
-            if (command.state == 'group_mode') {
-                var group_mode = this.state.group_mode;
+		// only change state when vote is new
+		if (!votes[data.voter] || votes[data.voter] !== data.signal) {
+			console.log('App._vote_recieve - vote is new. set_state');
+			votes[data.voter] = data.signal;
+			this.setState({ votes: votes });
+		}
+	},
+	_admin_command: function _admin_command(command) {
+		console.log('App._admin_command()');
+		console.log('App._admin_command - data', command);
+		if (command.method == 'set_state') {
+			if (command.state == 'group_mode') {
+				var group_mode = this.state.group_mode;
 
-                group_mode = command.value;
-                this.setState({ group_mode: group_mode });
-                console.log('App._admin_command - state', this.state);
-            }
-        }
-    },
-    _admin_stage: function _admin_stage(data) {
-        console.log('App._admin_stage()');
-        console.log('App._admin_stage - data', data);
-        var stage = this.state.stage;
+				group_mode = command.value;
+				this.setState({ group_mode: group_mode });
+				console.log('App._admin_command - state', this.state);
+			}
+		} else if (command.method == 'reload_page') {
+			window.location.reload(false);
+		}
+	},
+	_admin_stage: function _admin_stage(data) {
+		console.log('App._admin_stage()');
+		console.log('App._admin_stage - data', data);
+		var stage = this.state.stage;
 
-        stage = data;
-        this.setState({ stage: stage });
-        console.log('App._admin_command - state.stage post setState', this.state.stage);
-    },
-    _epoch_start: function _epoch_start(new_progress) {
-        console.log('App.epoch_start()');
-        var _state = this.state;
-        var progress = _state.progress;
-        var epoch_timer = _state.epoch_timer;
-        var epoch = _state.epoch;
+		stage = data;
+		this.setState({ stage: stage });
+		console.log('App._admin_command - state.stage post set_state', this.state.stage);
+	},
+	_epoch_start: function _epoch_start(new_progress) {
+		console.log('App.epoch_start()');
+		var _state = this.state;
+		var progress = _state.progress;
+		var epoch_timer = _state.epoch_timer;
+		var epoch = _state.epoch;
 
-        console.log('App.epoch_start - new progress', new_progress);
-        progress = new_progress;
-        // if (epoch_timer)
-        // 	window.clearTimeout(epoch_timer);
-        // epoch_timer = window.setTimeout(this.epoch_run_on_end,
-        // 				(epoch.seed_length+1)*1000);
-        // this.setState({progress, epoch_timer});
-        this.setState({ progress: progress });
-    },
-    _epoch_stop_progress: function _epoch_stop_progress() {
-        console.log('App.epoch_stop_progress()');
-        var progress = {
-            percent: -1,
-            autoIncrement: false,
-            intervalTime: 0
-        };
-        this.setState({ progress: progress });
-    },
-    _epoch_active_signals: function _epoch_active_signals(new_active_signals) {
-        console.log('App._epoch_active_signals()');
-        console.log('App._epoch_active_signals - new active signals', new_active_signals);
-        // get highest vote for group
-        var _state2 = this.state;
-        var signals = _state2.signals;
-        var active_signals = _state2.active_signals;
+		console.log('App.epoch_start - new progress', new_progress);
+		progress = new_progress;
+		// if (epoch_timer)
+		// 	window.clearTimeout(epoch_timer);
+		// epoch_timer = window.setTimeout(this.epoch_run_on_end,
+		// 				(epoch.seed_length+1)*1000);
+		// this.setState({progress, epoch_timer});
+		this.setState({ progress: progress });
+	},
+	_epoch_stop_progress: function _epoch_stop_progress() {
+		console.log('App.epoch_stop_progress()');
+		var progress = {
+			percent: -1,
+			autoIncrement: false,
+			intervalTime: 0
+		};
+		this.setState({ progress: progress });
+	},
+	_epoch_active_signals: function _epoch_active_signals(new_active_signals) {
+		console.log('App._epoch_active_signals()');
+		console.log('App._epoch_active_signals - new active signals', new_active_signals);
+		// get highest vote for group
+		var _state2 = this.state;
+		var signals = _state2.signals;
+		var active_signals = _state2.active_signals;
+		var votes = _state2.votes;
 
-        active_signals = new_active_signals;
-        this.setState({ active_signals: active_signals });
-        // clear out
-        if (active_signals.a.user) {
-            delete signals[active_signals.a.user.uid]; //.text = '';
-            if (this.state.group_mode && active_signals.b.user) {
-                delete signals[active_signals.b.user.uid]; //.text = '';
-            }
-            this.setState({ signals: signals });
-        }
+		active_signals = new_active_signals;
+		this.setState({ active_signals: active_signals });
+		// clear out
+		if (active_signals.a.user) {
+			delete signals[active_signals.a.user.uid]; //.text = '';
+			Object.keys(votes).forEach(function (k) {
+				if (votes[k] == active_signals.a.user.uid) delete votes[k];
+			});
+			if (this.state.group_mode && active_signals.b.user) {
+				delete signals[active_signals.b.user.uid]; //.text = '';
+				Object.keys(votes).forEach(function (k) {
+					if (votes[k] == active_signals.b.user.uid) delete votes[k];
+				});
+			}
+			this.setState({ signals: signals, votes: votes });
+		}
 
-        // TODO BUG BUG
-        // This could cause serious issues if there is more than one /stage up
-    },
-    add_vote_count_to_signals: function add_vote_count_to_signals(keys) {
-        console.log('App.add_vote_count_to_signals()');
-        // calculate vote_count and store it in signals
-        var signals = this.state.signals;
-        var votes = this.state.votes;
-        keys.map(function (key) {
-            var vote_count = Object.values(votes).filter(function (val) {
-                return val == key;
-            }).length;
-            signals[key].vote_count = vote_count;
-        });
-        console.log('App.add_vote_count_to_signals - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
-    },
-    organize_signal_keys: function organize_signal_keys(keys) {
-        console.log('App.organize_signal_keys()');
-        var signals = this.state.signals;
-        var user = this.state.user;
-        var group_mode = this.state.group_mode;
-        // console.log('Voter.organize_signal_keys - without own', keys);
-        // sort by votes
-        var sorted = keys.sort(function (a, b) {
-            // lowest first, to highest end
-            //return signals[a].vote_count - signals[b].vote_count;
-            // highest first, to lowest end
-            return signals[b].vote_count - signals[a].vote_count;
-        });
-        // console.log('Voter.organize_signal_keys - keys sorted by vote_count', sorted);
-        // put into groups if group_mode is true
-        // if in group_mode split into a/b. Else everything into a
-        // Also, remove empty if config says so
-        var groups = { a: [], b: [] };
-        sorted.map(function (key) {
-            var signal = signals[key];
-            if (signal.text.length < _config2['default'].voter.min_signal_length) return;
-            // console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
-            if (group_mode && signal.user.gid == 'b') groups.b.push(key);else groups.a.push(key);
-        });
-        // console.log('Voter.organize_signal_keys - groups', groups);
-        return groups;
-    },
-    render_signals: function render_signals(keys, gid) {
-        var _this = this;
+		// TODO BUG BUG
+		// This could cause serious issues if there is more than one /stage up
+	},
+	_epoch_active_signals_clear: function _epoch_active_signals_clear() {
+		console.log('App._epoch_active_signals_clear()');
+		// get highest vote for group
+		var active_signals = { a: { text: '', user: { uid: null, name: '' } },
+			b: { text: '', user: { uid: null, name: '' } } };
+		this.setState({ active_signals: active_signals });
+	},
+	add_vote_count_to_signals: function add_vote_count_to_signals(keys) {
+		console.log('App.add_vote_count_to_signals()');
+		// calculate vote_count and store it in signals
+		var signals = this.state.signals;
+		var votes = this.state.votes;
+		keys.map(function (key) {
+			var vote_count = Object.keys(votes).filter(function (val) {
+				return votes[val] == key;
+			}).length;
+			signals[key].vote_count = vote_count;
+		});
+		console.log('App.add_vote_count_to_signals - signals after vote_count added', signals);
+		// BUG TODO : DO we need to call set_state ?
+	},
+	organize_signal_keys: function organize_signal_keys(keys) {
+		console.log('App.organize_signal_keys()');
+		var signals = this.state.signals;
+		var user = this.state.user;
+		var group_mode = this.state.group_mode;
+		// console.log('Voter.organize_signal_keys - without own', keys);
+		// sort by votes
+		var sorted = keys.sort(function (a, b) {
+			// lowest first, to highest end
+			//return signals[a].vote_count - signals[b].vote_count;
+			// highest first, to lowest end
+			return signals[b].vote_count - signals[a].vote_count;
+		});
+		// console.log('Voter.organize_signal_keys - keys sorted by vote_count', sorted);
+		// put into groups if group_mode is true
+		// if in group_mode split into a/b. Else everything into a
+		// Also, remove empty if config says so
+		var groups = { a: [], b: [] };
+		sorted.map(function (key) {
+			var signal = signals[key];
+			if (signal.text.length < _config2['default'].voter.min_signal_length) return;
+			// console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
+			if (group_mode && signal.user.gid == 'b') groups.b.push(key);else groups.a.push(key);
+		});
+		// console.log('Voter.organize_signal_keys - groups', groups);
+		return groups;
+	},
+	render_signals: function render_signals(keys, gid) {
+		var _this = this;
 
-        console.log('App.render_signals()');
-        if (gid != 'b') gid = 'a';
-        // console.log('App.render_signals - active', this.state.active_signals[gid]);
-        var next_opacity = 1.0;
-        return _react2['default'].createElement(
-            _reactFlipMove2['default'],
-            {
-                staggerDurationBy: '30',
-                duration: 500,
-                enterAnimation: 'accordianVertical',
-                leaveAnimation: 'accordianVertical'
-            },
-            _react2['default'].createElement(
-                'div',
-                { key: 'active', className: 'signal active_signal' },
-                _react2['default'].createElement(_reactProgressBarPlus2['default'], { percent: this.state.progress.percent,
-                    autoIncrement: this.state.progress.autoIncrement,
-                    intervalTime: this.state.progress.intervalTime
-                }),
-                _react2['default'].createElement('span', { className: 'vote_count' }),
-                _react2['default'].createElement(
-                    'span',
-                    { className: 'signal_text' },
-                    this.state.active_signals[gid].text
-                ),
-                _react2['default'].createElement(
-                    'span',
-                    { className: 'user_name' },
-                    this.state.active_signals[gid].user.name
-                )
-            ),
-            this.state.stage.show_signal_activity && keys.map(function (key, index) {
-                if (next_opacity <= _this.state.stage.opacity_step) next_opacity = 0.0;else next_opacity -= _this.state.stage.opacity_step;
+		console.log('App.render_signals()');
+		if (gid != 'b') gid = 'a';
+		// console.log('App.render_signals - active', this.state.active_signals[gid]);
+		var next_opacity = 1.0;
+		return _react2['default'].createElement(
+			_reactFlipMove2['default'],
+			{
+				staggerDurationBy: '30',
+				duration: 500,
+				enterAnimation: 'accordianVertical',
+				leaveAnimation: 'accordianVertical'
+			},
+			_react2['default'].createElement(
+				'div',
+				{ key: 'active', className: 'signal active_signal' },
+				_react2['default'].createElement(_reactProgressBarPlus2['default'], { percent: this.state.progress.percent,
+					autoIncrement: this.state.progress.autoIncrement,
+					intervalTime: this.state.progress.intervalTime
+				}),
+				_react2['default'].createElement('span', { className: 'vote_count' }),
+				_react2['default'].createElement(
+					'span',
+					{ className: 'signal_text' },
+					this.state.active_signals[gid].text
+				),
+				_react2['default'].createElement(
+					'span',
+					{ className: 'user_name' },
+					this.state.active_signals[gid].user.name
+				)
+			),
+			this.state.stage.show_signal_activity && keys.map(function (key, index) {
+				if (next_opacity <= _this.state.stage.opacity_step) next_opacity = 0.0;else next_opacity -= _this.state.stage.opacity_step;
 
-                var class_name = 'signal';
-                if (index == 0) {
-                    class_name += ' first_signal';
-                }
-                return _react2['default'].createElement(
-                    'div',
-                    { className: class_name, key: key, style: { opacity: next_opacity } },
-                    _react2['default'].createElement(
-                        'span',
-                        { className: 'vote_count' },
-                        _this.state.signals[key].vote_count
-                    ),
-                    _react2['default'].createElement(
-                        'span',
-                        { className: 'signal_text' },
-                        _this.state.signals[key].text
-                    ),
-                    _react2['default'].createElement(
-                        'span',
-                        { className: 'user_name' },
-                        _this.state.signals[key].user.name
-                    )
-                );
-            })
-        );
-    },
-    render: function render() {
-        console.log('App.render()');
-        var signal_keys = Object.keys(this.state.signals);
-        // add vote_count to signals[]
-        this.add_vote_count_to_signals(signal_keys);
-        // sort keys by votes and groups
-        var key_groups = this.organize_signal_keys(signal_keys);
-        console.log('App.render - key_groups', key_groups);
-        var signal_group_a = this.render_signals(key_groups.a);
-        if (this.state.group_mode) var signal_group_b = this.render_signals(key_groups.b, 'b');
-        var signalsClassName = "signals";
-        // if in group mode add group css class to root signal div
-        if (!this.state.group_mode) {
-            return _react2['default'].createElement(
-                'div',
-                { className: 'signals' },
-                signal_group_a
-            );
-        } else {
-            return _react2['default'].createElement(
-                'div',
-                null,
-                _react2['default'].createElement(
-                    'div',
-                    { className: 'signals group_a' },
-                    signal_group_a
-                ),
-                _react2['default'].createElement(
-                    'div',
-                    { className: 'signals group_b' },
-                    signal_group_b
-                )
-            );
-        }
-    }
+				var class_name = 'signal';
+				if (index == 0) {
+					class_name += ' first_signal';
+				}
+				return _react2['default'].createElement(
+					'div',
+					{ className: class_name, key: key, style: { opacity: next_opacity } },
+					_react2['default'].createElement(
+						'span',
+						{ className: 'vote_count' },
+						_this.state.signals[key].vote_count
+					),
+					_react2['default'].createElement(
+						'span',
+						{ className: 'signal_text' },
+						_this.state.signals[key].text
+					),
+					_react2['default'].createElement(
+						'span',
+						{ className: 'user_name' },
+						_this.state.signals[key].user.name
+					)
+				);
+			})
+		);
+	},
+	render: function render() {
+		console.log('App.render()');
+		var signal_keys = Object.keys(this.state.signals);
+		// add vote_count to signals[]
+		this.add_vote_count_to_signals(signal_keys);
+		// sort keys by votes and groups
+		var key_groups = this.organize_signal_keys(signal_keys);
+		console.log('App.render - key_groups', key_groups);
+		var signal_group_a = this.render_signals(key_groups.a);
+		if (this.state.group_mode) var signal_group_b = this.render_signals(key_groups.b, 'b');
+		var signalsClassName = "signals";
+		// if in group mode add group css class to root signal div
+		if (!this.state.group_mode) {
+			return _react2['default'].createElement(
+				'div',
+				{ className: 'signals' },
+				signal_group_a
+			);
+		} else {
+			return _react2['default'].createElement(
+				'div',
+				null,
+				_react2['default'].createElement(
+					'div',
+					{ className: 'signals group_a' },
+					signal_group_a
+				),
+				_react2['default'].createElement(
+					'div',
+					{ className: 'signals group_b' },
+					signal_group_b
+				)
+			);
+		}
+	}
 });
 
 _reactDom2['default'].render(_react2['default'].createElement(App, null), document.getElementById('app'));
@@ -326,10 +344,9 @@ config.stage = {};
 config.epoch = {};
 config.admin = {};
 
-config.server.port = 3000;
+config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
-// set to cause vote to update
-// config.server.vote_updates_signals = true;
+config.server.load_data_files = true; // load .data/*.json on start?
 
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
@@ -344,17 +361,17 @@ config.writer.max_chars = 140;
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.stage.opacity_step = 0.2; // dec opacity on signal list by this much with Signal on top starting at 1.0
+config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 // for stage and voter:
 // on bang signals state will be cleared
 config.epoch.wait_for_bang_to_start = true; // false then just go
-config.epoch.seed_length = 30; // time to vote
+config.epoch.seed_length = 10; // time to vote
 config.epoch.pause_length = 15; // time before voter faded in
 config.epoch.pause_forced = false; // when true client interface fade out all but count down
-// config.epoch.pause_show_progress = true; // show progress cont down
-config.epoch.start_new_epoch_after_pause = true; // if false forces admin bang.
-config.server.remove_signal_after_selected = true;
+// config.epoch.pause_show_progress = true  // show progress cont down
+config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
+config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

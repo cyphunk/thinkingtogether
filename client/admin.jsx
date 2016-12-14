@@ -35,18 +35,29 @@ var App = React.createClass({
     },
     toggle_group_mode(){
         // var password = location.hash.slice(location.hash.indexOf('#')+1);
-        console.log("App.toggle_group_mode() - password", password);
+        console.log("App.toggle_group_mode()");
         var {group_mode, password} = this.state;
         group_mode = !group_mode;
         socket.emit('admin:command', {
             password: password,
             command: {
-                method: 'setState',
+                method: 'set_state',
                 state: 'group_mode',
                 value: group_mode
             }
         });
         this.setState({group_mode});
+    },
+	reset_session(){
+        // var password = location.hash.slice(location.hash.indexOf('#')+1);
+        console.log("App.reset_session()");
+        var {password} = this.state;
+        socket.emit('admin:command', {
+            password: password,
+            command: {
+                method: 'reset_session',
+            }
+        });
     },
 	change_password(e) {
         localStorage.password = e.target.value;
@@ -66,6 +77,10 @@ var App = React.createClass({
         stage.show_signal_activity = !stage.show_signal_activity;
         this.setState({stage});
 		socket.emit('admin:stage', {password: password, stage: stage})
+    },
+	active_signals_clear(){
+		var {password} = this.state;
+		socket.emit('admin:epoch', {password: password, active_signals_clear: true})
     },
 	handle_epoch_submit(e) {
 		console.log('App.handle_epoch_submit');
@@ -98,9 +113,11 @@ var App = React.createClass({
 				<tr>
 					<td></td><th><span>Global</span></th>
 				</tr><tr>
-				</tr><tr>
 					<td><button onClick={this.toggle_group_mode}>{this.state.group_mode ? 'true' : 'false'}</button></td>
 					<td><span>toggle group mode</span></td>
+				</tr><tr>
+					<td><button onClick={this.reset_session}>Reset</button></td>
+					<td><span>Restart the entire show</span></td>
 				</tr><tr>
 					<td></td><th><span>Stage</span></th>
 				</tr><tr>
@@ -108,7 +125,7 @@ var App = React.createClass({
 					<td><input type="text"
 	                    value={this.state.stage.opacity_step}
 	                    onChange={this.stage_change_opacity} size="3" /></td>
-					<td><span>Stage opacity steps</span></td>
+					<td><span>Stage opacity steps (0.0 - 1.0)</span></td>
 				</tr><tr>
 					<td><button onClick={this.stage_toggle_show_signal_activity}>{this.state.stage.show_signal_activity ? 'true' : 'false'}</button></td>
 					<td><span>show signal activity</span></td>
@@ -135,12 +152,12 @@ var App = React.createClass({
 									     onBlur={this.handle_epoch_submit}
 									     /></td>
 								  <td><span>Pause length</span></td>
-							</tr><tr>
+							{/*}</tr><tr>
 								  <td><input type="checkbox"
 										 defaultChecked={this.state.epoch.pause_forced}
 										 ref={(i) => this.pause_forced = i}
 									     onChange={this.handle_epoch_submit} /></td>
-								  <td><span>Pause client UI off during pause (not in use)</span></td>
+								  <td><span>Pause client UI off during pause (not in use)</span></td>*/}
 							{/* </tr><tr>
 								  <td><input type="checkbox"
 										 defaultValue={this.state.epoch.pause_show_progress}
@@ -155,6 +172,9 @@ var App = React.createClass({
 								  <td><span>Start next epoch directly after pause ends</span></td>
 							</tr><tr>
 								  <td></td><td><button onClick={this.handle_epoch_bang}>Start Epoch</button></td>
+						  </tr><tr>
+								  <td></td><td><button onClick={this.active_signals_clear}>Clear active signals</button>
+								  </td>
 							</tr>
 			</tbody></table>
 		    </div>

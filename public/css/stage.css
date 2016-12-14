@@ -5,7 +5,7 @@ body {
     color: #eee;
     font-family: 'Roboto', sans-serif;
     font-size: 24pt;
-    margin: 4em;
+    margin: 1em 5%;
     padding: 0;
     cursor: none;
 }
@@ -20,10 +20,13 @@ body {
 
 .user_name {
     font-size: 1em;
+    white-space: nowrap;
+
 }
 
 .signal {
     padding: 0.2em 0.2em 0.3em 0.3em;
+    color: #999;
 }
 .signal .user_name {
     font-size: 0.5em;
@@ -87,7 +90,8 @@ http://codepen.io/vn38minhtran/pen/QjaZrm
  */
 
 .react-progress-bar {
-    width: 118%;
+    /*width: 118%;*/
+    width: 100%;
     height: 100%;
     transition: all 400ms;
     position: absolute;
@@ -110,7 +114,6 @@ http://codepen.io/vn38minhtran/pen/QjaZrm
     border:1px solid black;
     color: grey;
     /*position: relative;*/
-
 }
 .active_signal {
     font-weight: bold;

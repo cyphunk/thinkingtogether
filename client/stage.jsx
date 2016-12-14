@@ -36,7 +36,8 @@ var App = React.createClass({
         socket.on('admin:stage', this._admin_stage);
 		socket.on('epoch:start', this._epoch_start);
 		socket.on('epoch:stop_progress', this._epoch_stop_progress);
-		socket.on('epoch:activesignals', this._epoch_active_signals);
+		socket.on('epoch:active_signals', this._epoch_active_signals);
+		socket.on('epoch:active_signals_clear', this._epoch_active_signals_clear);
 	},
     _on_connection(data) {
 		console.log('App._on_connection()');
@@ -46,9 +47,9 @@ var App = React.createClass({
 		console.log('App._initialize()');
         console.log('App._initialize - data', data);
 		// console.log('App._initialize() - data.handshake', data.handshake);
-		var {users, signals, votes, group_mode, stage} = data;
-		this.setState({users, signals, votes, group_mode, stage});
-		console.log('App._initialize - state after setState', this.state);
+		var {users, signals, votes, group_mode, stage, active_signals} = data;
+		this.setState({users, signals, votes, group_mode, stage, active_signals});
+		console.log('App._initialize - state after set_state', this.state);
 	},
 	_signal_recieve(data) {
 		console.log('App._signal_recieve()');
@@ -67,7 +68,7 @@ var App = React.createClass({
         var {votes} = this.state;
         // only change state when vote is new
         if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-			console.log('App._vote_recieve - vote is new. setState');
+			console.log('App._vote_recieve - vote is new. set_state');
             votes[data.voter] = data.signal;
             this.setState({votes});
         }
@@ -75,7 +76,7 @@ var App = React.createClass({
     _admin_command(command) {
 		console.log('App._admin_command()');
 		console.log('App._admin_command - data', command);
-        if (command.method == 'setState') {
+        if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
                 var {group_mode} = this.state;
                 group_mode = command.value;
@@ -83,6 +84,10 @@ var App = React.createClass({
                 console.log('App._admin_command - state', this.state);
             }
         }
+		else
+		if (command.method == 'reload_page') {
+			window.location.reload(false);
+		}
     },
     _admin_stage(data) {
         console.log('App._admin_stage()');
@@ -90,7 +95,7 @@ var App = React.createClass({
         var {stage} = this.state;
         stage = data;
         this.setState({ stage });
-        console.log('App._admin_command - state.stage post setState', this.state.stage);
+        console.log('App._admin_command - state.stage post set_state', this.state.stage);
     },
 	_epoch_start(new_progress) {
 		console.log('App.epoch_start()');
@@ -117,21 +122,34 @@ var App = React.createClass({
 		console.log('App._epoch_active_signals()');
 		console.log('App._epoch_active_signals - new active signals', new_active_signals);
 		// get highest vote for group
-		var {signals, active_signals} = this.state
+		var {signals, active_signals, votes} = this.state
 		active_signals = new_active_signals
 		this.setState({active_signals})
 		// clear out
 		if (active_signals.a.user) {
 			delete signals[active_signals.a.user.uid]//.text = '';
+			Object.keys(votes).forEach((k) => {
+				if (votes[k] == active_signals.a.user.uid)
+					delete votes[k] })
 			if (this.state.group_mode && active_signals.b.user) {
 				delete signals[active_signals.b.user.uid]//.text = '';
+				Object.keys(votes).forEach((k) => {
+					if (votes[k] == active_signals.b.user.uid)
+						delete votes[k] })
 			}
-			this.setState({signals})
+			this.setState({signals, votes})
 		}
 
 		// TODO BUG BUG
 		// This could cause serious issues if there is more than one /stage up
 
+	},
+	_epoch_active_signals_clear() {
+		console.log('App._epoch_active_signals_clear()');
+		// get highest vote for group
+		var active_signals = { a: {text: '', user: {uid: null, name: ''}},
+		  					   b: {text: '', user: {uid: null, name: ''}} }
+		this.setState({active_signals})
 	},
     add_vote_count_to_signals(keys) {
 		console.log('App.add_vote_count_to_signals()');
@@ -139,14 +157,14 @@ var App = React.createClass({
         var signals = this.state.signals;
         var votes = this.state.votes;
         keys.map((key) => {
-            var vote_count = Object.values(votes).filter(
+            var vote_count = Object.keys(votes).filter(
                               function(val){
-                                   return val == key;
+                                   return votes[val] == key;
                               }).length;
             signals[key].vote_count = vote_count;
         });
         console.log('App.add_vote_count_to_signals - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
+        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys(keys) {
 		console.log('App.organize_signal_keys()');
