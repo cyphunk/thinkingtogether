@@ -197,34 +197,33 @@ var App = React.createClass({
         // console.log('Voter.organize_signal_keys - groups', groups);
         return groups;
     },
+	onFinishTest(child,dom) {
+		console.log('on finish')
+		console.log(child,dom)
+	},
     render_signals(keys, gid) {
 		console.log('App.render_signals()');
 		if (gid != 'b')
 		 	gid = 'a';
 		// console.log('App.render_signals - active', this.state.active_signals[gid]);
-		var next_opacity = 1.0;
         return (
             <FlipMove
                 staggerDurationBy="30"
                 duration={500}
                 enterAnimation='accordianVertical'
                 leaveAnimation='accordianVertical'
+				onFinish={this.onFinishTest}
                 >
 					<div key="active" className="signal active_signal">
 							 <ProgressBar percent={this.state.progress.percent}
 											  autoIncrement={this.state.progress.autoIncrement}
 											  intervalTime={this.state.progress.intervalTime}
 											  />
-							 <span className="vote_count"></span>
 							 <span className="signal_text">{this.state.active_signals[gid].text}</span>
 							 <span className="user_name">{this.state.active_signals[gid].user.name}</span>
 					</div>
                     {
                         this.state.stage.show_signal_activity && keys.map((key, index) => {
-                            if (next_opacity <= this.state.stage.opacity_step)
-							 	next_opacity = 0.0;
-							else
-							 	next_opacity -= this.state.stage.opacity_step;
 
 							var class_name = 'signal'
 							if (index == 0) {
@@ -235,7 +234,7 @@ var App = React.createClass({
 								votes_elem = <span className="vote_count">{this.state.signals[key].vote_count}</span>;
 							else
 
-                            return (<div className={class_name} key={key} style={{opacity: next_opacity}}>
+                            return (<div className={class_name} key={key}>
 										{votes_elem}
                         				<span className="signal_text">{this.state.signals[key].text}</span>
                                         <span className="user_name">{this.state.signals[key].user.name}</span>

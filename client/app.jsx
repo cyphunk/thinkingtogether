@@ -48,7 +48,7 @@ var Writer = React.createClass({
             console.log("Writer handle_change - submit");
             socket.emit('send:signal', {
                 user : this.props.user,
-                text : e.target.value
+                text : e.target.value.replace(/\n|\./g, '')
             });
         }
         else if (config.writer.send_live_input) {
@@ -78,7 +78,7 @@ var Writer = React.createClass({
                     onChange={this.handle_change}
                     value={this.props.signal}
                     autoFocus="true"
-                    onFocus={this.moveCaretAtEnd}   
+                    onFocus={this.moveCaretAtEnd}
                 >
                 </Textarea>
             </form>

@@ -231,20 +231,24 @@ var App = _react2['default'].createClass({
 		// console.log('Voter.organize_signal_keys - groups', groups);
 		return groups;
 	},
+	onFinishTest: function onFinishTest(child, dom) {
+		console.log('on finish');
+		console.log(child, dom);
+	},
 	render_signals: function render_signals(keys, gid) {
 		var _this = this;
 
 		console.log('App.render_signals()');
 		if (gid != 'b') gid = 'a';
 		// console.log('App.render_signals - active', this.state.active_signals[gid]);
-		var next_opacity = 1.0;
 		return _react2['default'].createElement(
 			_reactFlipMove2['default'],
 			{
 				staggerDurationBy: '30',
 				duration: 500,
 				enterAnimation: 'accordianVertical',
-				leaveAnimation: 'accordianVertical'
+				leaveAnimation: 'accordianVertical',
+				onFinish: this.onFinishTest
 			},
 			_react2['default'].createElement(
 				'div',
@@ -253,7 +257,6 @@ var App = _react2['default'].createClass({
 					autoIncrement: this.state.progress.autoIncrement,
 					intervalTime: this.state.progress.intervalTime
 				}),
-				_react2['default'].createElement('span', { className: 'vote_count' }),
 				_react2['default'].createElement(
 					'span',
 					{ className: 'signal_text' },
@@ -266,7 +269,6 @@ var App = _react2['default'].createClass({
 				)
 			),
 			this.state.stage.show_signal_activity && keys.map(function (key, index) {
-				if (next_opacity <= _this.state.stage.opacity_step) next_opacity = 0.0;else next_opacity -= _this.state.stage.opacity_step;
 
 				var class_name = 'signal';
 				if (index == 0) {
@@ -279,7 +281,7 @@ var App = _react2['default'].createClass({
 					_this.state.signals[key].vote_count
 				);else return _react2['default'].createElement(
 					'div',
-					{ className: class_name, key: key, style: { opacity: next_opacity } },
+					{ className: class_name, key: key },
 					votes_elem,
 					_react2['default'].createElement(
 						'span',
@@ -362,7 +364,6 @@ config.writer.max_chars = 140;
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
 // for stage and voter:

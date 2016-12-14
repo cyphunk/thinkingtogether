@@ -28,6 +28,24 @@ body {
     padding: 0.2em 0.2em 0.3em 0.3em;
     color: #999;
 }
+.signal:nth-child(2) {
+    opacity: 0.7
+}
+.signal:nth-child(3) {
+    opacity: 0.5
+}
+.signal:nth-child(4) {
+    opacity: 0.3
+}
+.signal:nth-child(5) {
+    opacity: 0.2
+}
+.signal:nth-child(6) {
+    opacity: 0.1
+}
+.signal:nth-child(n+7) {
+    opacity: 0.0
+}
 .signal .user_name {
     font-size: 0.5em;
     opacity: 0.2;

@@ -218,27 +218,6 @@ var App = _react2['default'].createClass({
 							)
 						)
 					),
-					_react2['default'].createElement('tr', null),
-					_react2['default'].createElement(
-						'tr',
-						null,
-						_react2['default'].createElement(
-							'td',
-							null,
-							_react2['default'].createElement('input', { type: 'text',
-								value: this.state.stage.opacity_step,
-								onChange: this.stage_change_opacity, size: '3' })
-						),
-						_react2['default'].createElement(
-							'td',
-							null,
-							_react2['default'].createElement(
-								'span',
-								null,
-								'Stage opacity steps (0.0 - 1.0)'
-							)
-						)
-					),
 					_react2['default'].createElement(
 						'tr',
 						null,
@@ -442,7 +421,6 @@ config.writer.max_chars = 140;
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
 // for stage and voter:

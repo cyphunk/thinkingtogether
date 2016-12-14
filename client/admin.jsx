@@ -121,12 +121,6 @@ var App = React.createClass({
 				</tr><tr>
 					<td></td><th><span>Stage</span></th>
 				</tr><tr>
-				</tr><tr>
-					<td><input type="text"
-	                    value={this.state.stage.opacity_step}
-	                    onChange={this.stage_change_opacity} size="3" /></td>
-					<td><span>Stage opacity steps (0.0 - 1.0)</span></td>
-				</tr><tr>
 					<td><button onClick={this.stage_toggle_show_signal_activity}>{this.state.stage.show_signal_activity ? 'true' : 'false'}</button></td>
 					<td><span>show signal activity</span></td>
 				</tr><tr>
