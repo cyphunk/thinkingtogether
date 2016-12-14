@@ -2,10 +2,10 @@
 if (process.argv.length < 3 ) {
 	console.error("usage: "+process.argv[0]+" sessionid [password]")
 	console.error("\nsessionid should be different between shows so that clients that may have it part of a saved uid from an older show (or test run) do not have a the possibility to collide with uid's for the current show")
-    process.exit(0)
+    //process.exit(0)
 }
 
-var sessionid = process.argv[2] // || new Date().getTime() || Math.random()
+var sessionid = process.argv[2] || new Date().getTime() || Math.random()
 // sent by admin to change settings (such as group mode)
 var password = process.argv[3] || 'gettinglaidorgettingpaid'
 
