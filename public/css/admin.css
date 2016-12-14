@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+body {
+    background-color: #333;
+    color: #ddd;
+    font-family: 'Roboto', sans-serif;
+    font-size: 12pt;
+    margin: 4em;
+    padding: 0;
+}
+td:nth-child(1) {
+    text-align: right;
+}
+td:nth-child(2) {
+    color: #999;
+}
+* {
+}
+span, input, button {
+    margin: 0.1em 0.4em;
+}
+input, button {
+    font-size: inherit;
+    font-family: inherit;
+}
+input {
+    color: inherit;
+    background-color: rgba(66, 66, 66, 0.5);
+    padding: 0.4em;
+    border: 0;
+}
+table input {
+    text-align: right;
+}
+table th {
+    text-align: left;
+}
+button {
+    /*border-style:ridge;*/
+    border-radius: 5px;
+    border-width: 4px;
+}
