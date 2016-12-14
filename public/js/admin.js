@@ -392,7 +392,7 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.active_signals_clear },
-								'Clear active ignals'
+								'Clear active signals'
 							)
 						)
 					)
@@ -427,7 +427,7 @@ config.admin = {};
 
 config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
-config.server.load_data_files = true; // load .data/*.json on start?
+config.server.load_data_files = false; // load .data/*.json on start?
 
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
