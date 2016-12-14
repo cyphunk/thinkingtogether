@@ -266,34 +266,35 @@ var epoch = (function () {
 }())
 
 
+if (process.stdout.isTTY)) {
+	var stdin = process.openStdin()
+	stdin.setRawMode(true)
+	stdin.resume()
+	stdin.setEncoding('utf8')
+	stdin.on( 'data', function( key ){
+	  if ( key === '\u0003' ) { // ctrl+c aka quit
+	    // save_state()
+	    // setTimeout(function(){process.exit()}, PROCESS_EXIT_WAIT)
+		process.exit()
+	  }
+	  // else if ( key === '\u0013') { // ctrl+s aka save
+	  //   save_state()
+	  // }
+	  else if ( key === '\u0014') { // ctrl+t aka test
+	      console.log("\nusers:\n", users.get())
+	      console.log("\nsignals:\n", signals.get())
+	      console.log("\nvotes:\n", votes.get())
+		  console.log("\nepoch master_id:", epoch.get_master_id())
+		  console.log("epoch config:\n", config.epoch)
+		  console.log("epoch active signals:", epoch.get_active_signals())
+		  console.log("\nstage:\n", config.stage)
+	  }
 
-var stdin = process.openStdin()
-stdin.setRawMode(true)
-stdin.resume()
-stdin.setEncoding('utf8')
-stdin.on( 'data', function( key ){
-  if ( key === '\u0003' ) { // ctrl+c aka quit
-    // save_state()
-    // setTimeout(function(){process.exit()}, PROCESS_EXIT_WAIT)
-	process.exit()
-  }
-  // else if ( key === '\u0013') { // ctrl+s aka save
-  //   save_state()
-  // }
-  else if ( key === '\u0014') { // ctrl+t aka test
-      console.log("\nusers:\n", users.get())
-      console.log("\nsignals:\n", signals.get())
-      console.log("\nvotes:\n", votes.get())
-	  console.log("\nepoch master_id:", epoch.get_master_id())
-	  console.log("epoch config:\n", config.epoch)
-	  console.log("epoch active signals:", epoch.get_active_signals())
-	  console.log("\nstage:\n", config.stage)
-  }
-
-  //console.log(util.inspect(key,{depth: null})) // use to see key
-  // write the key to stdout all normal like
-  process.stdout.write( key )
-})
+	  //console.log(util.inspect(key,{depth: null})) // use to see key
+	  // write the key to stdout all normal like
+	  process.stdout.write( key )
+	})
+}
 
 
 
