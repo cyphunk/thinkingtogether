@@ -272,14 +272,15 @@ var App = _react2['default'].createClass({
 				if (index == 0) {
 					class_name += ' first_signal';
 				}
-				return _react2['default'].createElement(
+				var votes_elem = null;
+				if (_config2['default'].stage.show_vote_count) votes_elem = _react2['default'].createElement(
+					'span',
+					{ className: 'vote_count' },
+					_this.state.signals[key].vote_count
+				);else return _react2['default'].createElement(
 					'div',
 					{ className: class_name, key: key, style: { opacity: next_opacity } },
-					_react2['default'].createElement(
-						'span',
-						{ className: 'vote_count' },
-						_this.state.signals[key].vote_count
-					),
+					votes_elem,
 					_react2['default'].createElement(
 						'span',
 						{ className: 'signal_text' },
@@ -363,6 +364,7 @@ config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
 config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
+config.stage.show_vote_count = false;
 // for stage and voter:
 // on bang signals state will be cleared
 config.epoch.wait_for_bang_to_start = true; // false then just go

@@ -62,8 +62,11 @@ var Writer = React.createClass({
         //Supposedly pressing enter in text input calls the forms submit
         // so we do not need to call this.handle_submit on enter
     },
-
-
+    moveCaretAtEnd(e) {
+      var temp_value = e.target.value
+      e.target.value = ''
+      e.target.value = temp_value
+    },
     render() {
         console.log('text',this.props.signal)
         return (
@@ -75,6 +78,7 @@ var Writer = React.createClass({
                     onChange={this.handle_change}
                     value={this.props.signal}
                     autoFocus="true"
+                    onFocus={this.moveCaretAtEnd}   
                 >
                 </Textarea>
             </form>

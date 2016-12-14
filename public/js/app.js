@@ -73,7 +73,11 @@ var Writer = _react2['default'].createClass({
         //Supposedly pressing enter in text input calls the forms submit
         // so we do not need to call this.handle_submit on enter
     },
-
+    moveCaretAtEnd: function moveCaretAtEnd(e) {
+        var temp_value = e.target.value;
+        e.target.value = '';
+        e.target.value = temp_value;
+    },
     render: function render() {
         var _this = this;
 
@@ -89,7 +93,8 @@ var Writer = _react2['default'].createClass({
                 },
                 onChange: this.handle_change,
                 value: this.props.signal,
-                autoFocus: 'true'
+                autoFocus: 'true',
+                onFocus: this.moveCaretAtEnd
             })
         );
     }
@@ -688,6 +693,7 @@ config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
 config.stage.opacity_step = 0.0; // dec opacity on signal list by this much with Signal on top starting at 1.0
 config.stage.show_signal_activity = true; // false means only the current signal is shown
+config.stage.show_vote_count = false;
 // for stage and voter:
 // on bang signals state will be cleared
 config.epoch.wait_for_bang_to_start = true; // false then just go

@@ -230,8 +230,13 @@ var App = React.createClass({
 							if (index == 0) {
 								class_name += ' first_signal';
 							}
+							var votes_elem = null;
+							if (config.stage.show_vote_count)
+								votes_elem = <span className="vote_count">{this.state.signals[key].vote_count}</span>;
+							else
+
                             return (<div className={class_name} key={key} style={{opacity: next_opacity}}>
-                                        <span className="vote_count">{this.state.signals[key].vote_count}</span>
+										{votes_elem}
                         				<span className="signal_text">{this.state.signals[key].text}</span>
                                         <span className="user_name">{this.state.signals[key].user.name}</span>
                                     </div>
