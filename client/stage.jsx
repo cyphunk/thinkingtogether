@@ -59,8 +59,6 @@ var App = React.createClass({
 		    signals[data.user.uid] = data;
 		    this.setState({signals});
         }
-        console.log('App._signal_recieve - debug state', this.state);
-        console.log('App._signal_recieve - debug data', data);
 	},
     _vote_recieve(data) {
 		console.log('App._vote_recieve()');
@@ -223,7 +221,9 @@ var App = React.createClass({
 							 <span className="user_name">{this.state.active_signals[gid].user.name}</span>
 					</div>
                     {
-                        this.state.stage.show_signal_activity && keys.map((key, index) => {
+                        this.state.stage.show_signal_activity &&
+						 keys.slice(0,this.state.stage.show_n_signals).map(
+							(key, index) => {
 
 							var class_name = 'signal'
 							if (index == 0) {

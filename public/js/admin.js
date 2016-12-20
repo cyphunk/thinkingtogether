@@ -117,7 +117,7 @@ var App = _react2['default'].createClass({
 		epoch.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
 		epoch.seed_length = parseFloat(this.seed_length.value);
 		epoch.pause_length = parseFloat(this.pause_length.value);
-		epoch.pause_forced = this.pause_forced.checked;
+		// epoch.pause_forced = this.pause_forced.checked;
 		// epoch.pause_show_progress = this.pause_show_progress.checked;
 		epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
 		this.setState({ epoch: epoch });
@@ -169,7 +169,7 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.toggle_group_mode },
-								this.state.group_mode ? 'true' : 'false'
+								'toggle'
 							)
 						),
 						_react2['default'].createElement(
@@ -178,7 +178,9 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'span',
 								null,
-								'toggle group mode'
+								'group mode (is now ',
+								this.state.group_mode ? 'ON' : 'OFF',
+								')'
 							)
 						)
 					),
@@ -227,7 +229,7 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.stage_toggle_show_signal_activity },
-								this.state.stage.show_signal_activity ? 'true' : 'false'
+								'toggle'
 							)
 						),
 						_react2['default'].createElement(
@@ -236,7 +238,9 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'span',
 								null,
-								'show signal activity'
+								'show signal activity (is now ',
+								this.state.stage.show_signal_activity ? 'ON' : 'OFF',
+								')'
 							)
 						)
 					),
@@ -381,17 +385,19 @@ var App = _react2['default'].createClass({
 	}
 });
 _reactDom2['default'].render(_react2['default'].createElement(App, null), document.getElementById('app'));
-/*}</tr><tr>
-  <td><input type="checkbox"
-		 defaultChecked={this.state.epoch.pause_forced}
-		 ref={(i) => this.pause_forced = i}
-	     onChange={this.handle_epoch_submit} /></td>
-  <td><span>Pause client UI off during pause (not in use)</span></td>*/ /* </tr><tr>
-                                                                          <td><input type="checkbox"
-                                                                        		 defaultValue={this.state.epoch.pause_show_progress}
-                                                                        		 ref={(i) => this.pause_show_progress = i}
-                                                                        	     onChange={this.handle_epoch_submit} /></td>
-                                                                          <td><span>Pause show progess</span></td> */
+/*</tr><tr>
+<td><button onClick={this.toggle_group_mode}>toggle</button></td>
+<td><span>debug mode (is now {this.state.debug_mode ? 'ON' : 'OFF'})</span></td>*/ /*}</tr><tr>
+                                                                                     <td><input type="checkbox"
+                                                                                   		 defaultChecked={this.state.epoch.pause_forced}
+                                                                                   		 ref={(i) => this.pause_forced = i}
+                                                                                   	     onChange={this.handle_epoch_submit} /></td>
+                                                                                     <td><span>Pause client UI off during pause (not in use)</span></td>*/ /* </tr><tr>
+                                                                                                                                                             <td><input type="checkbox"
+                                                                                                                                                           		 defaultValue={this.state.epoch.pause_show_progress}
+                                                                                                                                                           		 ref={(i) => this.pause_show_progress = i}
+                                                                                                                                                           	     onChange={this.handle_epoch_submit} /></td>
+                                                                                                                                                             <td><span>Pause show progess</span></td> */
 
 },{"../config":2,"react":179,"react-dom":28}],2:[function(require,module,exports){
 'use strict';
@@ -411,20 +417,27 @@ config.server.load_data_files = false; // load .data/*.json on start?
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
 config.server.reject_empty_signal = false;
+
+config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
-config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
-config.writer.send_live_input = false;
+config.writer.send_live_input = false; // clients send as they type?
 config.writer.submit_on_linebreak = true;
 config.writer.submit_on_period = true;
 config.writer.max_chars = 140;
+config.writer.show_submit_button = false;
+
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
+config.voter.show_n_signals = 10;
+
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
+config.stage.show_n_signals = 10; // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
+
 config.epoch.wait_for_bang_to_start = true; // false then just go
 config.epoch.seed_length = 10; // time to vote
 config.epoch.pause_length = 15; // time before voter faded in
@@ -432,6 +445,7 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
+
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

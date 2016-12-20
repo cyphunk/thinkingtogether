@@ -69,11 +69,15 @@ var Writer = React.createClass({
     },
     render() {
         console.log('text',this.props.signal)
+        var submit_elem = null
+        if (config.writer.show_submit_button)
+            submit_elem = <input className="submit_button" type="submit" value="Submit"/>
         return (
             <form onSubmit={this.handle_submit} >
+            <table className="writer_table"><tr><td colSpan="2">
                 <Textarea
                     type="text"
-                    placeholder={"Propose signal <"+config.writer.max_chars+" characters..."}
+                    placeholder={"Propose signal <"+config.writer.max_chars+" letters..."}
                     ref={(input) => this.signalInput = input}
                     onChange={this.handle_change}
                     value={this.props.signal}
@@ -81,6 +85,9 @@ var Writer = React.createClass({
                     onFocus={this.moveCaretAtEnd}
                 >
                 </Textarea>
+                </td></tr><tr><td>
+                <span className="user_name">You are {this.props.user.name}</span></td><td>
+                {submit_elem}</td></tr></table>
             </form>
         );
     },
@@ -253,7 +260,8 @@ var Voter = React.createClass({
                     >
 				{
                     //Object.keys(this.props.signals).map((signal_key) => {
-                    keys.map((signal_key) => {
+                    keys.slice(0,config.voter.show_n_signals).map(
+                        (signal_key) => {
                         console.log('Voter render - signal_key', signal_key);
                         var this_class_name = 'signal';
                         if (this.props.user.uid === signal_key)
@@ -522,7 +530,6 @@ var App = React.createClass({
                             user={this.state.user}
                             signal={this.state.signal}
                             handle_writer_signal_field_changed={this.handle_writer_signal_field_changed} />
-                        <span className="user_name">You are {this.state.user.name}</span>
                         {/* <span className="userUID">({this.state.user.uid})</span> */}
                     </TabPanel>
                     <TabPanel>

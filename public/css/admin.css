@@ -23,6 +23,9 @@ input, button {
     font-size: inherit;
     font-family: inherit;
 }
+button:hover {
+    background-color: #fff;
+}
 input {
     color: inherit;
     background-color: rgba(66, 66, 66, 0.5);

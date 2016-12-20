@@ -8,7 +8,12 @@ body {
     margin: 0;
     padding: 0;
 }
-
+table {
+width: 100%
+}
+h3 {
+    padding: 0 5%;
+}
 a {
     color: inherit;
     text-decoration: none;
@@ -24,8 +29,21 @@ input, textarea {
     font-family: inherit;
     color: inherit;
     padding: 0.4em;
-    margin: 0.6em 0em;
+    margin: 0.6em 0em 0em 0em;
     width: 95%;
+}
+.submit_button {
+    margin: 0em 0em 0.6em 0em;
+}
+.writer_table td:nth-child(1) span {
+    display:block;
+    padding: 0.3em 0 0 0.5em;
+}
+.writer_table td:nth-child(1) {
+    vertical-align: top;
+}
+.writer_table td:nth-child(2) {
+    /*text-align: right;*/
 }
 span, a, button {
     margin: 0 0.2em 0 0;

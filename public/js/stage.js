@@ -90,8 +90,6 @@ var App = _react2['default'].createClass({
 			signals[data.user.uid] = data;
 			this.setState({ signals: signals });
 		}
-		console.log('App._signal_recieve - debug state', this.state);
-		console.log('App._signal_recieve - debug data', data);
 	},
 	_vote_recieve: function _vote_recieve(data) {
 		console.log('App._vote_recieve()');
@@ -268,7 +266,7 @@ var App = _react2['default'].createClass({
 					this.state.active_signals[gid].user.name
 				)
 			),
-			this.state.stage.show_signal_activity && keys.map(function (key, index) {
+			this.state.stage.show_signal_activity && keys.slice(0, this.state.stage.show_n_signals).map(function (key, index) {
 
 				var class_name = 'signal';
 				if (index == 0) {
@@ -354,20 +352,27 @@ config.server.load_data_files = false; // load .data/*.json on start?
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
 config.server.reject_empty_signal = false;
+
+config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
-config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
-config.writer.send_live_input = false;
+config.writer.send_live_input = false; // clients send as they type?
 config.writer.submit_on_linebreak = true;
 config.writer.submit_on_period = true;
 config.writer.max_chars = 140;
+config.writer.show_submit_button = false;
+
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
+config.voter.show_n_signals = 10;
+
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
+config.stage.show_n_signals = 10; // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
+
 config.epoch.wait_for_bang_to_start = true; // false then just go
 config.epoch.seed_length = 10; // time to vote
 config.epoch.pause_length = 15; // time before voter faded in
@@ -375,6 +380,7 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
+
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

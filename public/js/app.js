@@ -82,20 +82,53 @@ var Writer = _react2['default'].createClass({
         var _this = this;
 
         console.log('text', this.props.signal);
+        var submit_elem = null;
+        if (_config2['default'].writer.show_submit_button) submit_elem = _react2['default'].createElement('input', { className: 'submit_button', type: 'submit', value: 'Submit' });
         return _react2['default'].createElement(
             'form',
             { onSubmit: this.handle_submit },
-            _react2['default'].createElement(_reactTextareaAutosize2['default'], {
-                type: 'text',
-                placeholder: "Propose signal <" + _config2['default'].writer.max_chars + " characters...",
-                ref: function (input) {
-                    return _this.signalInput = input;
-                },
-                onChange: this.handle_change,
-                value: this.props.signal,
-                autoFocus: 'true',
-                onFocus: this.moveCaretAtEnd
-            })
+            _react2['default'].createElement(
+                'table',
+                { className: 'writer_table' },
+                _react2['default'].createElement(
+                    'tr',
+                    null,
+                    _react2['default'].createElement(
+                        'td',
+                        { colSpan: '2' },
+                        _react2['default'].createElement(_reactTextareaAutosize2['default'], {
+                            type: 'text',
+                            placeholder: "Propose signal <" + _config2['default'].writer.max_chars + " letters...",
+                            ref: function (input) {
+                                return _this.signalInput = input;
+                            },
+                            onChange: this.handle_change,
+                            value: this.props.signal,
+                            autoFocus: 'true',
+                            onFocus: this.moveCaretAtEnd
+                        })
+                    )
+                ),
+                _react2['default'].createElement(
+                    'tr',
+                    null,
+                    _react2['default'].createElement(
+                        'td',
+                        null,
+                        _react2['default'].createElement(
+                            'span',
+                            { className: 'user_name' },
+                            'You are ',
+                            this.props.user.name
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        'td',
+                        null,
+                        submit_elem
+                    )
+                )
+            )
         );
     }
 
@@ -344,7 +377,7 @@ var Voter = _react2['default'].createClass({
                 },
 
                 //Object.keys(this.props.signals).map((signal_key) => {
-                keys.map(function (signal_key) {
+                keys.slice(0, _config2['default'].voter.show_n_signals).map(function (signal_key) {
                     console.log('Voter render - signal_key', signal_key);
                     var this_class_name = 'signal';
                     if (_this2.props.user.uid === signal_key) this_class_name += ' my_signal';
@@ -632,13 +665,7 @@ var App = _react2['default'].createClass({
                     _react2['default'].createElement(Writer, {
                         user: this.state.user,
                         signal: this.state.signal,
-                        handle_writer_signal_field_changed: this.handle_writer_signal_field_changed }),
-                    _react2['default'].createElement(
-                        'span',
-                        { className: 'user_name' },
-                        'You are ',
-                        this.state.user.name
-                    )
+                        handle_writer_signal_field_changed: this.handle_writer_signal_field_changed })
                 ),
                 _react2['default'].createElement(
                     _reactTabs.TabPanel,
@@ -681,20 +708,27 @@ config.server.load_data_files = false; // load .data/*.json on start?
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
 config.server.reject_empty_signal = false;
+
+config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
-config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
-config.writer.send_live_input = false;
+config.writer.send_live_input = false; // clients send as they type?
 config.writer.submit_on_linebreak = true;
 config.writer.submit_on_period = true;
 config.writer.max_chars = 140;
+config.writer.show_submit_button = false;
+
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
+config.voter.show_n_signals = 10;
+
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
+config.stage.show_n_signals = 10; // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
+
 config.epoch.wait_for_bang_to_start = true; // false then just go
 config.epoch.seed_length = 10; // time to vote
 config.epoch.pause_length = 15; // time before voter faded in
@@ -702,6 +736,7 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
+
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

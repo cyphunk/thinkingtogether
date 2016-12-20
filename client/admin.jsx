@@ -89,7 +89,7 @@ var App = React.createClass({
 		epoch.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
 		epoch.seed_length = parseFloat(this.seed_length.value);
 		epoch.pause_length = parseFloat(this.pause_length.value);
-		epoch.pause_forced = this.pause_forced.checked;
+		// epoch.pause_forced = this.pause_forced.checked;
 		// epoch.pause_show_progress = this.pause_show_progress.checked;
 		epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
 		this.setState({ epoch });
@@ -113,16 +113,19 @@ var App = React.createClass({
 				<tr>
 					<td></td><th><span>Global</span></th>
 				</tr><tr>
-					<td><button onClick={this.toggle_group_mode}>{this.state.group_mode ? 'true' : 'false'}</button></td>
-					<td><span>toggle group mode</span></td>
+					<td><button onClick={this.toggle_group_mode}>toggle</button></td>
+					<td><span>group mode (is now {this.state.group_mode ? 'ON' : 'OFF'})</span></td>
+				{/*</tr><tr>
+					<td><button onClick={this.toggle_group_mode}>toggle</button></td>
+					<td><span>debug mode (is now {this.state.debug_mode ? 'ON' : 'OFF'})</span></td>*/}
 				</tr><tr>
 					<td><button onClick={this.reset_session}>Reset</button></td>
 					<td><span>Restart the entire show</span></td>
 				</tr><tr>
 					<td></td><th><span>Stage</span></th>
 				</tr><tr>
-					<td><button onClick={this.stage_toggle_show_signal_activity}>{this.state.stage.show_signal_activity ? 'true' : 'false'}</button></td>
-					<td><span>show signal activity</span></td>
+					<td><button onClick={this.stage_toggle_show_signal_activity}>toggle</button></td>
+					<td><span>show signal activity (is now {this.state.stage.show_signal_activity ? 'ON' : 'OFF'})</span></td>
 				</tr><tr>
 					<td></td><th><span>Epoch</span></th>
 				</tr><tr>
