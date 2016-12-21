@@ -7,8 +7,8 @@ if (process.argv.length < 3 ) {
 
 var sessionid = process.argv[2] || parseInt(Math.random() *10000) // parseInt(Math.random() *10000)
 // sent by admin to change settings (such as group mode)
-var password = process.argv[3] || 'gettinglaidorgettingpaid'
-
+//var password = process.argv[3] || 'gettinglaidorgettingpaid'
+var password = require('./password') || 'gettinglaidorgettingpaid'
 // when true clients only see other signals from their own group
 var group_mode = false
 var config = require('./config')
@@ -436,7 +436,7 @@ var socket = function (socket) {
 			users: users.get(),
 			signals: signals.get(),
 			votes: votes.get(),
-			group_mode: group_mode
+			group_mode: group_mode,
 		})
 		if (!is_admin) {
 			// notify other clients that a new user has joined
