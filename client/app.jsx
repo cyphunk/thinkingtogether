@@ -17,12 +17,45 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 import config from '../config';
 
+//
+// ordering the list a ghetto way for now. maybe better in the future with more time
+//
+/* ORDER:
+  your signal
+  your select
+  top#1
+  top#2 / this removed if s
+  neighbor
+  latest
+  random
+
+*/
+var actual_latest = null // change on new epoch
+var current_selected = null // need this. eg. select latest but after n seconds
+var current_top = null // change every N time
+var current_neighbor = null // change on new epoch
+var current_latest = null // /use on timeout to set_latest latest changes. should still see selected
+var current_random = null
+// these ony show up if the above overlap
+var current_second = null
+var current_latest2 = null
+var current_random2 = null
+// call whenever a new signal comes in
+var signal_order_timer = null // started on start and
+
 // if we have a previous uid send it. uid's are unique and only valid per session
 console.log("localStorage.uid = ", localStorage.uid)
-if (localStorage.uid)
+var using_hash_uid=false; // turn on with hash
+if (window.location.hash.length > 1) {
+    var socket = io.connect({query: 'uid='+window.location.hash.substr(1)});
+    using_hash_uid = true;
+}
+else if (localStorage.uid) {
     var socket = io.connect({query: 'uid='+localStorage.uid });
-else
+}
+else {
     var socket = io.connect();
+}
 window.onhashchange = function() {
     window.location.reload();
 }
@@ -119,7 +152,7 @@ var Signal = React.createClass({
 			<div className={this.props.this_class_name}>
                 <table>
                     <tbody>
-                            <td width="10">
+                            <td>
                 <button    className="modify_button"
                            onClick={this.handle_modify}>&nbsp;</button>
 
@@ -194,6 +227,46 @@ var Voter = React.createClass({
         console.log('Voter.organize_signal_keys - groups', groups);
         return groups;
     },
+    set_signal_order(signal_keys) { // expect signal keys ordered by vote
+        console.log('Voter.set_signal_order()')
+        console.log('Voter.set_signal_order() - current_neighbor', current_neighbor)
+        var current_selected = this.props.votes[this.props.user.uid]
+        var current_top = signal_keys[0]
+        signal_keys.shift()
+
+        // current neighbor set in timer loop
+        // if (!current_neighbor)
+        //     current_neighbor = signal_keys[2]
+        if (!current_latest)
+            current_latest   = signal_keys.length > 0 ? signal_keys.splice(-1,1)[0] : undefined
+        if (!current_random)
+            current_random   = signal_keys.length > 0 ? signal_keys[Math.floor(Math.random() * signal_keys.length)] : undefined
+        // make sure we cover cases where several overlaps happen
+        if (!current_latest2)
+            current_latest2  = signal_keys.length > 0 ? signal_keys.splice(-1,1)[0] : undefined
+        if (!current_random2)
+            current_random2  = signal_keys.length > 0 ? signal_keys[Math.floor(Math.random() * signal_keys.length)] : undefined
+        var current_second = signal_keys[0]
+        // do not shift because it may be current second never shows up
+
+        var ret = [
+            signal_keys[0],
+            current_selected,
+            current_neighbor,
+            current_latest,
+            current_random,
+            signal_keys[1],
+            current_latest2,
+            current_random2
+        ]
+        // unique and remove undefined
+        var ret = ret.filter(function(value,index,self) {
+            return value && self.indexOf(value) === index
+        })
+        // make sure no more than 5
+        var ret = ret.slice(0,config.voter.show_n_signals)
+        return ret
+    },
 	render() {
         var signal_keys = Object.keys(this.props.signals);
         // add vote_count to signals[]
@@ -206,15 +279,11 @@ var Voter = React.createClass({
         else
             var keys = key_groups.a;
         console.log('Voter render - keys', keys);
+        // setup ordering
+        keys = this.set_signal_order(keys)
 
         var my_signal = null;
         if (this.props.signals[this.props.user.uid]) {
-            // my_signal = <div className='signal my_signal'>
-            //     <span>Yours:&nbsp;&nbsp;</span>
-			// 	<span className="signal_text">{this.props.signals[this.props.user.uid].text}</span>
-            //     <span className="vote_count">&nbsp;&nbsp;{this.props.signals[this.props.user.uid].vote_count}&nbsp;votes</span>
-            // </div>;
-
             my_signal = <div className='signal my_signal'>
                     <table><tbody><td>
                             <button    className="modify_button"
@@ -225,14 +294,6 @@ var Voter = React.createClass({
                                        onClick={() => alert('you cannot vote for yourself')}>{this.props.signals[this.props.user.uid].vote_count}</button>
                             <span className="user_name">(Yours)</span>
             			</td></tbody></table></div>;
-            // <Signal
-            //                 this_class_name='signal my_signal'
-            //                 voter={fakeUser}
-            // 				key={this.props.user.uid}
-            //                 signal={this.props.signals[this.props.user.uid]}
-            //                 update_state_signal={this.props.update_state_signal}
-            //                 update_state_vote={() => alert('you cannot vote for yourself')}
-            // 				/>
         }
 
         if (keys.length <= 0 && !my_signal) {
@@ -260,6 +321,7 @@ var Voter = React.createClass({
                     >
 				{
                     //Object.keys(this.props.signals).map((signal_key) => {
+                    //keys.slice(0,config.voter.show_n_signals).map(
                     keys.slice(0,config.voter.show_n_signals).map(
                         (signal_key) => {
                         console.log('Voter render - signal_key', signal_key);
@@ -324,15 +386,18 @@ var App = React.createClass({
     },
 	_initialize(data) {
         console.log('App._initialize() - data', data);
-		var {users, user, signals, votes, group_mode, epoch} = data;
+		var {users, user, signals, votes, group_mode, epoch, config} = data;
         // save uid in case accidental browser refreshed
         localStorage.uid = user.uid
+        if (using_hash_uid)
+            window.location.hash=user.uid
         if (signals[user.uid])
             var signal = signals[user.uid].text;
         else
             var signal = '';
 		this.setState({users, user: user, signals, signal, votes, group_mode, epoch});
         //console.log('App._initialize() - data.handshake', data.handshake);
+        this.signal_order_loop()
 	},
 
 	_signal_recieve(data) {
@@ -459,9 +524,35 @@ var App = React.createClass({
             window.location.reload(false);
         }
     },
+    signal_order_loop() {
+        console.log('App.signal_order_loop()')
+        if (signal_order_timer)
+            window.clearTimeout(signal_order_timer)
+        // setState will cause a render
+        // our render calls a function that redefines orders
+        // but here we tell it the things we want reset
+        current_latest = undefined
+        current_random = undefined
+        current_latest2 = undefined
+        current_random2 = undefined
+        var _this = this;
+        signal_order_timer = window.setTimeout(function(){
+            this.setState(this.state)
+            this.signal_order_loop()
+        }.bind(this),config.voter.reorder_wait_time*1000)
+    },
+    // called when epoch has ended. server sends chosen signals
     _epoch_active_signals(active_signals) {
         console.log('App._epoch_active_signals() - active_signals', active_signals)
         var {user, signals, votes} = this.state;
+
+        // setup certain signal list constants:
+        current_neighbor = votes[user.uid]
+        // console.log('App._epoch_active_signals() - current_neighbor, uid', active_signals, user.uid)
+
+        // restart list change timer for random and latest
+        this.signal_order_loop()
+
         // TODO Show message to the user when it was their signal that won
         if (active_signals.a.user && active_signals.a.user.uid) {
             console.log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid)
@@ -499,10 +590,10 @@ var App = React.createClass({
         this.setState({ selected_tab });
         // remove \n and .
         if (selected_tab == 0) {
-            var {signal, signals, signal} = this.state;
+            var {signal, signals} = this.state;
             // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
             //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
-            if (signal.text.slice(-1) == "\n" || signal.text.match(/\. *$/g) !== null) {
+            if (signal.slice(-1) == "\n" || signal.match(/\. *$/g) !== null) {
                 signal = signal.replace(/\n/g,'').replace(/\./g,'');
                     this.setState({signal});
             }
