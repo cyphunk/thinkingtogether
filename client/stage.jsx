@@ -2,11 +2,13 @@ import React, { Component } from 'react';
 import FlipMove from 'react-flip-move';
 import ReactDOM from 'react-dom';
 import Textarea from 'react-textarea-autosize';
-import ProgressBar from 'react-progress-bar-plus';
-
+//import ProgressBar from 'react-progress-bar-plus';
+import ProgressBar from 'progressbar.js';
 import config from '../config';
 var socket = io.connect();
 
+var progress_bar_a = null
+var progress_bar_b = null
 var App = React.createClass({
 	getInitialState() {
 		return {
@@ -97,7 +99,7 @@ var App = React.createClass({
     },
 	_epoch_start(new_progress) {
 		console.log('App.epoch_start()');
-		var {progress, epoch_timer, epoch} =  this.state;
+		var {progress, epoch_timer, epoch, group_mode} =  this.state;
 		console.log('App.epoch_start - new progress', new_progress);
 		progress = new_progress
 		// if (epoch_timer)
@@ -106,15 +108,40 @@ var App = React.createClass({
 		// 				(epoch.seed_length+1)*1000);
 		// this.setState({progress, epoch_timer});
 		this.setState({progress});
+		// new method
+		progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
+		    strokeWidth: 2,
+			color: '#ffffff'
+		});
+		progress_bar_a.animate(1, { duration: progress.intervalTime*100, }, function(){
+			console.log('progress_bar_a finished')
+		});
+		if (group_mode) {
+			progress_bar_b = new ProgressBar.Line('#progress_bar_b', {
+			    strokeWidth: 2,
+				color: '#ffffff'
+			});
+			progress_bar_b.animate(1, {duration: progress.intervalTime*100}, function(){
+				console.log('progress_bar_b finished')
+			});
+		}
+
   	},
 	_epoch_stop_progress() {
 		console.log('App.epoch_stop_progress()');
+		progress_bar_a = document.getElementById('progress_bar_a')
+		progress_bar_a.innerHTML = ''
+		if (this.state.group_mode) {
+			progress_bar_b = document.getElementById('progress_bar_b')
+			progress_bar_b.innerHTML = ''
+		}
 		var progress = {
 			percent: -1,
 			autoIncrement: false,
 			intervalTime: 0
 		}
 		this.setState({ progress })
+
 	},
 	_epoch_active_signals(new_active_signals) {
 		console.log('App._epoch_active_signals()');
@@ -195,30 +222,27 @@ var App = React.createClass({
         // console.log('Voter.organize_signal_keys - groups', groups);
         return groups;
     },
-	onFinishTest(child,dom) {
-		console.log('on finish')
-		console.log(child,dom)
-	},
     render_signals(keys, gid) {
 		console.log('App.render_signals()');
 		if (gid != 'b')
 		 	gid = 'a';
 		// console.log('App.render_signals - active', this.state.active_signals[gid]);
+		var progress_bar_id = 'progress_bar_'+gid
         return (
             <FlipMove
                 staggerDurationBy="30"
                 duration={500}
                 enterAnimation='accordianVertical'
                 leaveAnimation='accordianVertical'
-				onFinish={this.onFinishTest}
                 >
 					<div key="active" className="signal active_signal">
-							 <ProgressBar percent={this.state.progress.percent}
+							 {/*<ProgressBar percent={this.state.progress.percent}
 											  autoIncrement={this.state.progress.autoIncrement}
 											  intervalTime={this.state.progress.intervalTime}
-											  />
+											  />*/}
 							 <span className="signal_text">{this.state.active_signals[gid].text}</span>
 							 <span className="user_name">{this.state.active_signals[gid].user.name}</span>
+							 <div id={progress_bar_id} className="react-progress-bar"></div>
 					</div>
                     {
                         this.state.stage.show_signal_activity &&
@@ -256,21 +280,17 @@ var App = React.createClass({
         var signal_group_a = this.render_signals(key_groups.a);
         if (this.state.group_mode)
             var signal_group_b = this.render_signals(key_groups.b, 'b');
-		var signalsClassName = "signals"
         // if in group mode add group css class to root signal div
         if (!this.state.group_mode) {
             return (
-
                 <div className="signals">
-
                 {signal_group_a}
-			</div>
+				</div>
 			);
         }
         else {
             return (
 				<div>
-
 	                <div className="signals group_a">
 	                	{signal_group_a}
 	                </div>

@@ -603,9 +603,13 @@ var App = React.createClass({
 	render() {
         // if in group mode add group css class to root signal div
         var divClass = 'first_container';
-        if (this.state.group_mode)
+        if (this.state.group_mode) {
             divClass += ' signals_group_'+this.state.user.gid;
-
+            document.body.className = 'signals_group_'+this.state.user.gid;
+        }
+        else {
+            document.body.className = '';
+        }
 		return (
 			<div className={divClass}>
                 {/* <Tabs selectedIndex={this.state.selected_tab}

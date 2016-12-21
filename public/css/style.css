@@ -9,7 +9,7 @@ body {
     padding: 0;
 }
 table {
-width: 100%
+_width: 100%
 }
 h3 {
     padding: 0 5%;
@@ -21,6 +21,13 @@ a {
 .ReactTabs__TabList {
     font-size: 1.5em;
     /*position: fixed;*/
+}
+.react-tabs [role="tablist"] {
+/*extend border on bottom*/
+border-bottom: 2px solid #fff;
+width: 100%;
+margin-left: -50%;
+padding-left: 50%;
 }
 input, textarea {
     background-color: rgba(0, 0, 0, 0.5);
@@ -50,13 +57,13 @@ span, a, button {
 }
 .first_container {
     padding: 10px 2em;
-    padding-bottom: 140%; /*help group color extend full screen*/
+    _padding-bottom: 140%; /*help group color extend full screen*/
 }
 @media screen and (max-width: 500px) {
 /* applies only if the screen is narrower than 500px */
   .first_container {
     padding: 10px 1em;
-    padding-bottom: 140%;
+    _padding-bottom: 140%;
   }
 }
 
@@ -156,11 +163,18 @@ a.vote_button _img {
 .signals .myVote {
     background-color: rgba(33,102,33,0.8);
 }
-.signals_group_a {
+._signals_group_a
+ {
     background-color: rgba(0,0,102,0.5);
 }
-.signals_group_b {
+body.signals_group_a {
+    background-color: #226;
+}
+._signals_group_b {
     background-color: rgba(102,0,0,0.5);
+}
+body.signals_group_b {
+    background-color: #622;
 }
 
 

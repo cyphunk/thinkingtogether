@@ -436,7 +436,7 @@ var socket = function (socket) {
 			users: users.get(),
 			signals: signals.get(),
 			votes: votes.get(),
-			group_mode: group_mode,
+			group_mode: group_mode
 		})
 		if (!is_admin) {
 			// notify other clients that a new user has joined
