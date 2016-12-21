@@ -6,10 +6,11 @@
     "build": "browserify ./client/app.jsx -t babelify --outfile ./public/js/app.js",
     "build_admin": "browserify ./client/admin.jsx -t babelify --outfile ./public/js/admin.js",
     "build_stage": "browserify ./client/stage.jsx -t babelify --outfile ./public/js/stage.js",
-    "start": "node app.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.14.0",
+    "progressbar.js": "^1.0.1",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-flip-move": "^2.7.1",

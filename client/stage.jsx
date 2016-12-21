@@ -2,29 +2,30 @@ import React, { Component } from 'react';
 import FlipMove from 'react-flip-move';
 import ReactDOM from 'react-dom';
 import Textarea from 'react-textarea-autosize';
-import ProgressBar from 'react-progress-bar-plus';
-
+//import ProgressBar from 'react-progress-bar-plus';
+import ProgressBar from 'progressbar.js';
 import config from '../config';
 var socket = io.connect();
 
+var progress_bar_a = null
+var progress_bar_b = null
 var App = React.createClass({
 	getInitialState() {
-		return {user: {}, users: [],
+		return {
+			    users: [],
                 signals:{},
-                votes: {}, group_mode: false,
+                votes: {},
+				group_mode: false,
                 stage: config.stage,
 				active_signals: {
-					a: {text: '', username:''},
-					b: {text: '', username:''}
+					a: {text: '', user: {uid: null, name: ''}},
+					b: {text: '', user: {uid: null, name: ''}}
 				},
 				progress: {
 					percent: -1,
 					autoIncrement: false,
 					intervalTime: 0
 				},
-				epoch: config.epoch,
-				epoch_timer: null,
-				pause_timer: null
 		}
 	},
 
@@ -35,7 +36,10 @@ var App = React.createClass({
         socket.on('connection', this._on_connection);
         socket.on('admin:command', this._admin_command);
         socket.on('admin:stage', this._admin_stage);
-        socket.on('admin:epoch', this._admin_epoch);
+		socket.on('epoch:start', this._epoch_start);
+		socket.on('epoch:stop_progress', this._epoch_stop_progress);
+		socket.on('epoch:active_signals', this._epoch_active_signals);
+		socket.on('epoch:active_signals_clear', this._epoch_active_signals_clear);
 	},
     _on_connection(data) {
 		console.log('App._on_connection()');
@@ -45,12 +49,9 @@ var App = React.createClass({
 		console.log('App._initialize()');
         console.log('App._initialize - data', data);
 		// console.log('App._initialize() - data.handshake', data.handshake);
-		var {users, user, signals, votes, group_mode, epoch} = data;
-		this.setState({users, user: user, signals, votes, group_mode, epoch});
-		console.log('App._initialize - state after setState', this.state);
-		if (!this.state.epoch.wait_for_bang_to_start) {
-			this.epoch_start();
-		}
+		var {users, signals, votes, group_mode, stage, active_signals} = data;
+		this.setState({users, signals, votes, group_mode, stage, active_signals});
+		console.log('App._initialize - state after set_state', this.state);
 	},
 	_signal_recieve(data) {
 		console.log('App._signal_recieve()');
@@ -60,8 +61,6 @@ var App = React.createClass({
 		    signals[data.user.uid] = data;
 		    this.setState({signals});
         }
-        console.log('App._signal_recieve - debug state', this.state);
-        console.log('App._signal_recieve - debug data', data);
 	},
     _vote_recieve(data) {
 		console.log('App._vote_recieve()');
@@ -69,16 +68,15 @@ var App = React.createClass({
         var {votes} = this.state;
         // only change state when vote is new
         if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-			console.log('App._vote_recieve - vote is new. setState');
+			console.log('App._vote_recieve - vote is new. set_state');
             votes[data.voter] = data.signal;
             this.setState({votes});
         }
     },
-
     _admin_command(command) {
 		console.log('App._admin_command()');
 		console.log('App._admin_command - data', command);
-        if (command.method == 'setState') {
+        if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
                 var {group_mode} = this.state;
                 group_mode = command.value;
@@ -86,6 +84,10 @@ var App = React.createClass({
                 console.log('App._admin_command - state', this.state);
             }
         }
+		else
+		if (command.method == 'reload_page') {
+			window.location.reload(false);
+		}
     },
     _admin_stage(data) {
         console.log('App._admin_stage()');
@@ -93,47 +95,107 @@ var App = React.createClass({
         var {stage} = this.state;
         stage = data;
         this.setState({ stage });
-        console.log('App._admin_command - state.stage post setState', this.state.stage);
+        console.log('App._admin_command - state.stage post set_state', this.state.stage);
     },
-	_admin_epoch(data) {
-		console.log('App._admin_epoch()');
-		console.log('App._admin_epoch - data', data);
-		if (data.start) {
-			console.log('App._admin_epoch - is start event');
-			this.epoch_start();
+	_epoch_start(new_progress) {
+		console.log('App.epoch_start()');
+		var {progress, epoch_timer, epoch, group_mode} =  this.state;
+		console.log('App.epoch_start - new progress', new_progress);
+		progress = new_progress
+		// if (epoch_timer)
+		// 	window.clearTimeout(epoch_timer);
+		// epoch_timer = window.setTimeout(this.epoch_run_on_end,
+		// 				(epoch.seed_length+1)*1000);
+		// this.setState({progress, epoch_timer});
+		this.setState({progress});
+		// new method
+		progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
+		    strokeWidth: 2,
+			color: '#ffffff'
+		});
+		progress_bar_a.animate(1, { duration: progress.intervalTime*100, }, function(){
+			console.log('progress_bar_a finished')
+		});
+		if (group_mode) {
+			progress_bar_b = new ProgressBar.Line('#progress_bar_b', {
+			    strokeWidth: 2,
+				color: '#ffffff'
+			});
+			progress_bar_b.animate(1, {duration: progress.intervalTime*100}, function(){
+				console.log('progress_bar_b finished')
+			});
 		}
-		else {
-	        var {stage} = this.state;
-	        stage = data;
-	        this.setState({ stage });
-			// TODO ACT ON IT
-	        console.log('App._admin_epoch - state.stage post setState', this.state.stage);
+
+  	},
+	_epoch_stop_progress() {
+		console.log('App.epoch_stop_progress()');
+		progress_bar_a = document.getElementById('progress_bar_a')
+		progress_bar_a.innerHTML = ''
+		if (this.state.group_mode) {
+			progress_bar_b = document.getElementById('progress_bar_b')
+			progress_bar_b.innerHTML = ''
 		}
-    },
+		var progress = {
+			percent: -1,
+			autoIncrement: false,
+			intervalTime: 0
+		}
+		this.setState({ progress })
+
+	},
+	_epoch_active_signals(new_active_signals) {
+		console.log('App._epoch_active_signals()');
+		console.log('App._epoch_active_signals - new active signals', new_active_signals);
+		// get highest vote for group
+		var {signals, active_signals, votes} = this.state
+		active_signals = new_active_signals
+		this.setState({active_signals})
+		// clear out
+		if (active_signals.a.user) {
+			delete signals[active_signals.a.user.uid]//.text = '';
+			Object.keys(votes).forEach((k) => {
+				if (votes[k] == active_signals.a.user.uid)
+					delete votes[k] })
+			if (this.state.group_mode && active_signals.b.user) {
+				delete signals[active_signals.b.user.uid]//.text = '';
+				Object.keys(votes).forEach((k) => {
+					if (votes[k] == active_signals.b.user.uid)
+						delete votes[k] })
+			}
+			this.setState({signals, votes})
+		}
+
+		// TODO BUG BUG
+		// This could cause serious issues if there is more than one /stage up
+
+	},
+	_epoch_active_signals_clear() {
+		console.log('App._epoch_active_signals_clear()');
+		// get highest vote for group
+		var active_signals = { a: {text: '', user: {uid: null, name: ''}},
+		  					   b: {text: '', user: {uid: null, name: ''}} }
+		this.setState({active_signals})
+	},
     add_vote_count_to_signals(keys) {
 		console.log('App.add_vote_count_to_signals()');
         // calculate vote_count and store it in signals
         var signals = this.state.signals;
         var votes = this.state.votes;
         keys.map((key) => {
-            var vote_count = Object.values(votes).filter(
+            var vote_count = Object.keys(votes).filter(
                               function(val){
-                                   return val == key;
+                                   return votes[val] == key;
                               }).length;
             signals[key].vote_count = vote_count;
         });
         console.log('App.add_vote_count_to_signals - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
+        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys(keys) {
 		console.log('App.organize_signal_keys()');
         var signals = this.state.signals;
         var user = this.state.user;
         var group_mode = this.state.group_mode;
-        // console.log('Voter.organize_signal_keys - keys', keys);
-        // remove our key/uid from list if it is there
-        if (keys.indexOf(user.uid)>=0)
-            keys.splice(keys.indexOf(user.uid),1);
         // console.log('Voter.organize_signal_keys - without own', keys);
         // sort by votes
         var sorted = keys.sort(function(a,b) {
@@ -165,7 +227,7 @@ var App = React.createClass({
 		if (gid != 'b')
 		 	gid = 'a';
 		// console.log('App.render_signals - active', this.state.active_signals[gid]);
-		var next_opacity = 1.0;
+		var progress_bar_id = 'progress_bar_'+gid
         return (
             <FlipMove
                 staggerDurationBy="30"
@@ -174,27 +236,30 @@ var App = React.createClass({
                 leaveAnimation='accordianVertical'
                 >
 					<div key="active" className="signal active_signal">
-							 <ProgressBar percent={this.state.progress.percent}
+							 {/*<ProgressBar percent={this.state.progress.percent}
 											  autoIncrement={this.state.progress.autoIncrement}
 											  intervalTime={this.state.progress.intervalTime}
-											  />
-							 <span className="vote_count"></span>
+											  />*/}
 							 <span className="signal_text">{this.state.active_signals[gid].text}</span>
-							 <span className="user_name">{this.state.active_signals[gid].username}</span>
+							 <span className="user_name">{this.state.active_signals[gid].user.name}</span>
+							 <div id={progress_bar_id} className="react-progress-bar"></div>
 					</div>
                     {
-                        keys.map((key, index) => {
-                            if (next_opacity <= this.state.stage.opacity_step)
-							 	next_opacity = 0.0;
-							else
-							 	next_opacity -= this.state.stage.opacity_step;
+                        this.state.stage.show_signal_activity &&
+						 keys.slice(0,this.state.stage.show_n_signals).map(
+							(key, index) => {
 
 							var class_name = 'signal'
 							if (index == 0) {
 								class_name += ' first_signal';
 							}
-                            return (<div className={class_name} key={key} style={{opacity: next_opacity}}>
-                                        <span className="vote_count">{this.state.signals[key].vote_count}</span>
+							var votes_elem = null;
+							if (config.stage.show_vote_count)
+								votes_elem = <span className="vote_count">{this.state.signals[key].vote_count}</span>;
+							else
+
+                            return (<div className={class_name} key={key}>
+										{votes_elem}
                         				<span className="signal_text">{this.state.signals[key].text}</span>
                                         <span className="user_name">{this.state.signals[key].user.name}</span>
                                     </div>
@@ -204,72 +269,6 @@ var App = React.createClass({
             </FlipMove>
         );
     },
-	epoch_start() {
-		console.log('App.epoch_start()');
-		var {progress, epoch_timer, epoch} =  this.state;
-		console.log('App.epoch_start - time', epoch.seed_length);
-		progress.percent = 0;
-		progress.autoIncrement = true;
-		progress.intervalTime = config.epoch.seed_length*10;
-		if (epoch_timer)
-			window.clearTimeout(epoch_timer);
-		epoch_timer = window.setTimeout(this.epoch_run_on_end,
-						(epoch.seed_length+1)*1000);
-		this.setState({progress, epoch_timer});
-  	},
-	epoch_run_on_end() {
-		console.log('App.epoch_run_on_end()');
-		var {progress} =  this.state;
-		progress.percent = -1;
-		progress.autoIncrement = false;
-		this.setState({progress});
-		this.epoch_set_active_signal();
-		//
-		// TODO remove winner from signals and send out '' signal for that user to
-		// rest, including owner
-		this.epoch_start_pause();
-	},
-	epoch_set_active_signal() {
-		console.log('App.epoch_set_active_signal()');
-		console.log('App.epoch_set_active_signal - signals', this.state.signals);
-		// get highest vote for group
-		var {signals, active_signals} = this.state
-		var signal_keys = Object.keys(this.state.signals);
-		var key_groups = this.organize_signal_keys(signal_keys);
-		console.log('App.epoch_set_active_signal - keygroups', key_groups.a[0]);
-
-		if (key_groups.a.length > 0) {
-			active_signals.a.text  =  signals[key_groups.a[0]].text;
-			active_signals.a.username  =  signals[key_groups.a[0]].user.name;
-		}
-		if (this.state.group_mode && key_groups.b.length > 0) {
-			active_signals.b.text  =  signals[key_groups.b[0]].text;
-			active_signals.b.username  =  signals[key_groups.b[0]].user.name;
-		}
-		this.setState({active_signals})
-		console.log('App.epoch_set_active_signal - active ', this.state.active_signals);
-	},
-	epoch_start_pause() {
-		console.log('App.epoch_start_pause()');
-		var {pause_timer, epoch} = this.state;
-		console.log('App.epoch_start_pause - time', epoch.pause_length);
-		if (epoch.pause_forced) {
-			console.log('App.epoch_start_pause forced - make screens blank');
-			// TODO case screens to go blank
-		}
-		if (pause_timer)
-			window.clearTimeout(pause_timer);
-		pause_timer = window.setTimeout(this.epoch_run_on_pause_end,
-						 epoch.pause_length*1000);
-		this.setState({pause_timer});
-	},
-	epoch_run_on_pause_end() {
-		console.log('App.epoch_run_on_pause_end()');
-		var {epoch} =  this.state;
-		if (epoch.start_new_epoch_after_pause) {
-			this.epoch_start();
-		}
-	},
 	render() {
 		console.log('App.render()');
         var signal_keys = Object.keys(this.state.signals);
@@ -281,21 +280,17 @@ var App = React.createClass({
         var signal_group_a = this.render_signals(key_groups.a);
         if (this.state.group_mode)
             var signal_group_b = this.render_signals(key_groups.b, 'b');
-
         // if in group mode add group css class to root signal div
         if (!this.state.group_mode) {
             return (
-
                 <div className="signals">
-
                 {signal_group_a}
-			</div>
+				</div>
 			);
         }
         else {
             return (
 				<div>
-
 	                <div className="signals group_a">
 	                	{signal_group_a}
 	                </div>

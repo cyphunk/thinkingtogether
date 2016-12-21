@@ -5,7 +5,7 @@ body {
     color: #eee;
     font-family: 'Roboto', sans-serif;
     font-size: 24pt;
-    margin: 4em;
+    margin: 1em 5%;
     padding: 0;
     cursor: none;
 }
@@ -20,10 +20,31 @@ body {
 
 .user_name {
     font-size: 1em;
+    white-space: nowrap;
+
 }
 
 .signal {
     padding: 0.2em 0.2em 0.3em 0.3em;
+    color: #999;
+}
+.signal:nth-child(2) {
+    opacity: 0.7
+}
+.signal:nth-child(3) {
+    opacity: 0.5
+}
+.signal:nth-child(4) {
+    opacity: 0.3
+}
+.signal:nth-child(5) {
+    opacity: 0.2
+}
+.signal:nth-child(6) {
+    opacity: 0.1
+}
+.signal:nth-child(n+7) {
+    opacity: 0.0
 }
 .signal .user_name {
     font-size: 0.5em;
@@ -81,36 +102,10 @@ hr { display: none}
 .first_signal .user_name {
 }
 
-/* progressbar
-http://jsfiddle.net/mjEDY/99/
-http://codepen.io/vn38minhtran/pen/QjaZrm
- */
-
-.react-progress-bar {
-    width: 118%;
-    height: 100%;
-    transition: all 400ms;
-    position: absolute;
-    top: 0; left: 0;
-}
-.react-progress-bar-percent {
-    /*width:100%;*/
-    /* set to 100% to background*/
-    height:6px;
-    background-color: #fff;
-    bottom: 0; left:0;
-    position: absolute;
-    z-index: -1;
-    transition: all 400ms;
-}
-.progress_bar {
-    position: relative;
-}
 .active_signal {
     border:1px solid black;
     color: grey;
     /*position: relative;*/
-
 }
 .active_signal {
     font-weight: bold;

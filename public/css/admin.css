@@ -16,12 +16,15 @@ td:nth-child(2) {
 }
 * {
 }
-span, input, button {
+input, button {
     margin: 0.1em 0.4em;
 }
 input, button {
     font-size: inherit;
     font-family: inherit;
+}
+button:hover {
+    background-color: #fff;
 }
 input {
     color: inherit;
