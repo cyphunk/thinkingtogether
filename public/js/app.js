@@ -446,6 +446,9 @@ var Voter = _react2['default'].createClass({
                 //keys.slice(0,config.voter.show_n_signals).map(
                 keys.map(function (signal_key) {
                     debug_log('Voter render - signal_key', signal_key);
+                    // Handle the condition where current_neighbor was
+                    // the winning active signal
+                    if (!signals[signal_key]) return;
                     var this_class_name = 'signal';
                     if (_this3.props.user.uid === signal_key) this_class_name += ' my_signal';
                     if (_this3.props.votes[_this3.props.user.uid] && _this3.props.votes[_this3.props.user.uid] === signal_key) this_class_name += ' myVote';
