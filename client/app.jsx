@@ -214,7 +214,7 @@ var Voter = React.createClass({
         // if in group_mode split into a/b. Else everything into a
         // Also, remove empty if config says so
         var groups = {a: [], b: []};
-        sorted.forEach((k) => {
+        sorted.forEach(function(k) {
             if (signals[k].text.length < config.voter.min_signal_length)
                 return;
             console.log('Voter.organize_signal_keys key,gid', k, signals[k].user.gid)
