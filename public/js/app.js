@@ -696,7 +696,10 @@ var App = _react2['default'].createClass({
         // TODO Show message to the user when it was their signal that won
         if (active_signals.a.user && active_signals.a.user.uid) {
             debug_log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid);
+            // purge signal
             delete signals[active_signals.a.user.uid]; //.text = ''
+            if (active_signals.a.user.uid == current_selected) current_selected = undefined;
+            // purge vote
             Object.keys(votes).forEach(function (k) {
                 if (votes[k] == active_signals.a.user.uid) delete votes[k];
             });
@@ -709,6 +712,7 @@ var App = _react2['default'].createClass({
         if (active_signals.b.user && active_signals.b.user.uid) {
             debug_log('App._epoch_active_signals - b key', active_signals.b.user.uid, user.uid);
             delete signals[active_signals.b.user.uid]; //.text = ''
+            if (active_signals.b.user.uid == current_selected) current_selected = undefined;
             Object.keys(votes).forEach(function (k) {
                 if (votes[k] == active_signals.b.user.uid) delete votes[k];
             });
