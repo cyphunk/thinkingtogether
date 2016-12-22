@@ -460,6 +460,7 @@ var Voter = _react2['default'].createClass({
                     //                        return v == signal_key;
                     //                   }).length;
                     debug_log('Voter render - signals', signals);
+                    debug_log('Voter render - signal_key', signal_key);
                     debug_log('Voter render - signals[signal_key]', signals[signal_key]);
                     debug_log('Voter render - vote_count', signals[signal_key].vote_count);
 
