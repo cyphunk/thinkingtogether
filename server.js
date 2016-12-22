@@ -437,6 +437,7 @@ var socket = function (socket) {
 			signals: signals.get(),
 			votes: votes.get(),
 			group_mode: group_mode,
+			config: config
 		})
 		if (!is_admin) {
 			// notify other clients that a new user has joined
@@ -481,6 +482,11 @@ var socket = function (socket) {
 				group_mode = data.command.value
 				socket.broadcast.emit('admin:command', data.command)
 			}
+		}
+		else
+		if (data.command.method == 'set_config') {
+			config = data.command.value
+			socket.broadcast.emit('admin:command', data.command)
 		}
 		else
 		if (data.command.method == 'reset_session') {

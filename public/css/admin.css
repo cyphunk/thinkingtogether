@@ -43,3 +43,18 @@ button {
     border-radius: 5px;
     border-width: 4px;
 }
+#advanced {
+    padding-top: 5em;
+    display: none;
+    font-size: 0.8em;
+}
+#advanced_toggle {
+    opacity: 0.4;
+    left:0;
+    bottom:0;
+    position: fixed;
+    padding: 1em;
+}
+#advanced_toggle span {
+    padding: 0.2em;
+}

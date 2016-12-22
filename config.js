@@ -5,6 +5,7 @@ config.voter = {}
 config.stage = {}
 config.epoch = {}
 config.admin = {}
+config.debug = true // set to true to turn on client debuggin
 
 config.server.port = 8080
 config.server.mode = 'production'  //NODE_ENV production or development
@@ -27,7 +28,7 @@ config.writer.show_submit_button = false
 config.voter.show_joined_messages = false
 config.voter.prevent_vote_self = true
 config.voter.min_signal_length = 1  // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.voter.show_n_signals = 5 // 
+config.voter.show_n_signals = 5 //
 config.voter.reorder_wait_time = 7 //
 
 config.stage.show_signal_activity = true  // false means only the current signal is shown
