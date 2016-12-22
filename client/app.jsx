@@ -214,18 +214,20 @@ var Voter = React.createClass({
         // if in group_mode split into a/b. Else everything into a
         // Also, remove empty if config says so
         var groups = {a: [], b: []};
-        sorted.map((key) => {
+        var group =  sorted.map((key) => {
             var signal = signals[key];
             if (signal.text.length < config.voter.min_signal_length)
                 return;
             console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
             if (group_mode && signal.user.gid == 'b')
-                groups.b.push(key)
+                return key //groups.b.push(key)
             else
-                groups.a.push(key)
+                return key //groups.a.push(key)
         });
-        console.log('Voter.organize_signal_keys - groups', groups);
-        return groups;
+        console.log('Voter.organize_signal_keys - groups', group);
+        return group;
+        // console.log('Voter.organize_signal_keys - groups', groups);
+        // return groups;
     },
     set_signal_order(signal_keys) { // expect signal keys ordered by vote
         console.log('Voter.set_signal_order()')
@@ -272,12 +274,12 @@ var Voter = React.createClass({
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys)
         // sort keys by votes and groups
-        var key_groups = this.organize_signal_keys(signal_keys);
-        console.log('Voter render - key_groups', key_groups);
-        if (this.props.group_mode)
-            var keys = key_groups[this.props.user.gid];
-        else
-            var keys = key_groups.a;
+        var keys = this.organize_signal_keys(signal_keys);
+        // console.log('Voter render - key_groups', key_groups);
+        // if (this.props.group_mode)
+        //     var keys = key_groups[this.props.user.gid];
+        // else
+        //     var keys = key_groups.a;
         console.log('Voter render - keys', keys);
         // setup ordering
         keys = this.set_signal_order(keys)
@@ -514,9 +516,9 @@ var App = React.createClass({
         console.log('App._admin_command() - data', command);
         if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
-                var {group_mode, signal} = this.state;
+                var {group_mode} = this.state;
                 group_mode = command.value;
-                this.setState({group_mode, signal});
+                this.setState({group_mode});
                 console.log('App._admin_command() - state', this.state);
             }
         }

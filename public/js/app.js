@@ -281,14 +281,17 @@ var Voter = _react2['default'].createClass({
         // if in group_mode split into a/b. Else everything into a
         // Also, remove empty if config says so
         var groups = { a: [], b: [] };
-        sorted.map(function (key) {
+        var group = sorted.map(function (key) {
             var signal = signals[key];
             if (signal.text.length < _config2['default'].voter.min_signal_length) return;
             console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid);
-            if (group_mode && signal.user.gid == 'b') groups.b.push(key);else groups.a.push(key);
+            if (group_mode && signal.user.gid == 'b') return key; //groups.b.push(key)
+            else return key; //groups.a.push(key)
         });
-        console.log('Voter.organize_signal_keys - groups', groups);
-        return groups;
+        console.log('Voter.organize_signal_keys - groups', group);
+        return group;
+        // console.log('Voter.organize_signal_keys - groups', groups);
+        // return groups;
     },
     set_signal_order: function set_signal_order(signal_keys) {
         // expect signal keys ordered by vote
@@ -325,9 +328,12 @@ var Voter = _react2['default'].createClass({
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys);
         // sort keys by votes and groups
-        var key_groups = this.organize_signal_keys(signal_keys);
-        console.log('Voter render - key_groups', key_groups);
-        if (this.props.group_mode) var keys = key_groups[this.props.user.gid];else var keys = key_groups.a;
+        var keys = this.organize_signal_keys(signal_keys);
+        // console.log('Voter render - key_groups', key_groups);
+        // if (this.props.group_mode)
+        //     var keys = key_groups[this.props.user.gid];
+        // else
+        //     var keys = key_groups.a;
         console.log('Voter render - keys', keys);
         // setup ordering
         keys = this.set_signal_order(keys);
@@ -626,12 +632,10 @@ var App = _react2['default'].createClass({
         console.log('App._admin_command() - data', command);
         if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
-                var _state4 = this.state;
-                var group_mode = _state4.group_mode;
-                var signal = _state4.signal;
+                var group_mode = this.state.group_mode;
 
                 group_mode = command.value;
-                this.setState({ group_mode: group_mode, signal: signal });
+                this.setState({ group_mode: group_mode });
                 console.log('App._admin_command() - state', this.state);
             }
         } else if (command.method == 'reload_page') {
@@ -657,10 +661,10 @@ var App = _react2['default'].createClass({
     // called when epoch has ended. server sends chosen signals
     _epoch_active_signals: function _epoch_active_signals(active_signals) {
         console.log('App._epoch_active_signals() - active_signals', active_signals);
-        var _state5 = this.state;
-        var user = _state5.user;
-        var signals = _state5.signals;
-        var votes = _state5.votes;
+        var _state4 = this.state;
+        var user = _state4.user;
+        var signals = _state4.signals;
+        var votes = _state4.votes;
 
         // setup certain signal list constants:
         current_neighbor = votes[user.uid];
@@ -701,9 +705,9 @@ var App = _react2['default'].createClass({
         this.setState({ selected_tab: selected_tab });
         // remove \n and .
         if (selected_tab == 0) {
-            var _state6 = this.state;
-            var signal = _state6.signal;
-            var signals = _state6.signals;
+            var _state5 = this.state;
+            var signal = _state5.signal;
+            var signals = _state5.signals;
 
             // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
             //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
