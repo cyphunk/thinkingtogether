@@ -282,14 +282,14 @@ var Voter = React.createClass({
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys)
         // sort keys by votes and groups
-        // var key_groups = this.organize_signal_keys(signal_keys);
-        // console.log('Voter render - key_groups', key_groups);
-        // if (this.props.group_mode)
-        //     var keys = key_groups[this.props.user.gid];
-        // else
-        //     var keys = key_groups.a;
-        var keys = this.organize_signal_keys(signal_keys);
-        console.log('Voter render - keys', keys);
+        var key_groups = this.organize_signal_keys(signal_keys);
+        console.log('Voter render - key_groups', key_groups);
+        if (this.props.group_mode)
+            var keys = key_groups[this.props.user.gid];
+        else
+            var keys = key_groups.a;
+        // var keys = this.organize_signal_keys(signal_keys);
+        // console.log('Voter render - keys', keys);
         // setup ordering
         keys = this.set_signal_order(keys)
         console.log('Voter render - keys after order', keys)
