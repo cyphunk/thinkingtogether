@@ -281,17 +281,25 @@ var Voter = _react2['default'].createClass({
         // if in group_mode split into a/b. Else everything into a
         // Also, remove empty if config says so
         var groups = { a: [], b: [] };
-        var group = sorted.map(function (key) {
-            var signal = signals[key];
-            if (signal.text.length < _config2['default'].voter.min_signal_length) return;
-            console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid);
-            if (group_mode && signal.user.gid == 'b') return key; //groups.b.push(key)
-            else return key; //groups.a.push(key)
+        sorted.forEach(function (k) {
+            if (signals[k].text.length < _config2['default'].voter.min_signal_length) return;
+            console.log('Voter.organize_signal_keys key,gid', k, signals[k].user.gid);
+            if (group_mode && signals[k].user.gid == 'b') groups.b.push(key);else groups.a.push(key);
         });
-        console.log('Voter.organize_signal_keys - groups', group);
-        return group;
-        // console.log('Voter.organize_signal_keys - groups', groups);
-        // return groups;
+        console.log('Voter.organize_signal_keys - groups', groups);
+        return groups;
+        // var group =  sorted.map((key) => {
+        //     var signal = signals[key];
+        //     if (signal.text.length < config.voter.min_signal_length)
+        //         return;
+        //     console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
+        //     if (group_mode && signal.user.gid == 'b')
+        //         return key.user.gid == key //groups.b.push(key)
+        //     else
+        //         return key //groups.a.push(key)
+        // });
+        // console.log('Voter.organize_signal_keys - group', group);
+        // return group;
     },
     set_signal_order: function set_signal_order(signal_keys) {
         // expect signal keys ordered by vote
@@ -328,13 +336,11 @@ var Voter = _react2['default'].createClass({
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys);
         // sort keys by votes and groups
-        var keys = this.organize_signal_keys(signal_keys);
-        // console.log('Voter render - key_groups', key_groups);
-        // if (this.props.group_mode)
-        //     var keys = key_groups[this.props.user.gid];
-        // else
-        //     var keys = key_groups.a;
-        console.log('Voter render - keys', keys);
+        var key_groups = this.organize_signal_keys(signal_keys);
+        console.log('Voter render - key_groups', key_groups);
+        if (this.props.group_mode) var keys = key_groups[this.props.user.gid];else var keys = key_groups.a;
+        // var keys = this.organize_signal_keys(signal_keys);
+        // console.log('Voter render - keys', keys);
         // setup ordering
         keys = this.set_signal_order(keys);
         console.log('Voter render - keys after order', keys);
