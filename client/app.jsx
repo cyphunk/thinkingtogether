@@ -195,12 +195,11 @@ var Voter = React.createClass({
             // signals[key].vote_count = vote_count;
         });
         debug_log('Voter.addvote_count - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys(keys) {
-        var signals = this.props.signals;
         var user = this.props.user;
         var group_mode = this.props.group_mode;
+        var signals = this.props.signals;
         debug_log('Voter.organize_signal_keys - keys', keys);
         // remove our key/uid from list if it is there
         if (keys.indexOf(user.uid)>=0)
@@ -287,7 +286,8 @@ var Voter = React.createClass({
         return ret
     },
 	render() {
-        var signal_keys = Object.keys(this.props.signals);
+        var signals = this.props.signals
+        var signal_keys = Object.keys(signals);
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys)
         // sort keys by votes and groups
@@ -297,22 +297,18 @@ var Voter = React.createClass({
             var keys = this.set_signal_order(key_groups[this.props.user.gid]);
         else
             var keys = this.set_signal_order(key_groups.a);
-        // var keys = this.organize_signal_keys(signal_keys);
-        // debug_log('Voter render - keys', keys);
-        // setup ordering
-        //keys = this.set_signal_order(keys)
         debug_log('Voter render - keys after order', keys)
 
         var my_signal = null;
-        if (this.props.signals[this.props.user.uid]) {
+        if (signals[this.props.user.uid]) {
             my_signal = <div className='signal my_signal'>
                     <table><tbody><td>
                             <button    className="modify_button"
-                                       onClick={() => this.props.update_state_signal(this.props.signals[this.props.user.uid].text.replace(/\.|\n/g,""))}>&nbsp;</button>
+                                       onClick={() => this.props.update_state_signal(signals[this.props.user.uid].text.replace(/\.|\n/g,""))}>&nbsp;</button>
                            </td><td>
-            				<span className="signal_text">{this.props.signals[this.props.user.uid].text}</span>
+            				<span className="signal_text">{signals[this.props.user.uid].text}</span>
                             <button    className="vote_button"
-                                       onClick={() => alert('you cannot vote for yourself')}>{this.props.signals[this.props.user.uid].vote_count}</button>
+                                       onClick={() => alert('you cannot vote for yourself')}>{signals[this.props.user.uid].vote_count}</button>
                             <span className="user_name">(Yours)</span>
             			</td></tbody></table></div>;
         }
@@ -343,7 +339,7 @@ var Voter = React.createClass({
 				{
                     //Object.keys(this.props.signals).map((signal_key) => {
                     //keys.slice(0,config.voter.show_n_signals).map(
-                    keys.slice(0,config.voter.show_n_signals).map(
+                    keys.map(
                         (signal_key) => {
                         debug_log('Voter render - signal_key', signal_key);
                         var this_class_name = 'signal';
@@ -362,14 +358,14 @@ var Voter = React.createClass({
                         //                   function(v){
                         //                        return v == signal_key;
                         //                   }).length;
-                        debug_log('Voter render - vote_count', this.props.signals[signal_key].vote_count);
+                        debug_log('Voter render - vote_count', signals[signal_key].vote_count);
 
 						return (
 							<Signal
                                 this_class_name={this_class_name}
                                 voter={this.props.user}
 								key={signal_key}
-                                signal={this.props.signals[signal_key]}
+                                signal={signals[signal_key]}
                                 update_state_signal={this.props.update_state_signal}
                                 update_state_vote={this.props.update_state_vote}
 							/>

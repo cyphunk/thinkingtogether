@@ -262,12 +262,11 @@ var Voter = _react2['default'].createClass({
             // signals[key].vote_count = vote_count;
         });
         debug_log('Voter.addvote_count - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call set_state ?
     },
     organize_signal_keys: function organize_signal_keys(keys) {
-        var signals = this.props.signals;
         var user = this.props.user;
         var group_mode = this.props.group_mode;
+        var signals = this.props.signals;
         debug_log('Voter.organize_signal_keys - keys', keys);
         // remove our key/uid from list if it is there
         if (keys.indexOf(user.uid) >= 0) keys.splice(keys.indexOf(user.uid), 1);
@@ -339,21 +338,18 @@ var Voter = _react2['default'].createClass({
     render: function render() {
         var _this3 = this;
 
-        var signal_keys = Object.keys(this.props.signals);
+        var signals = this.props.signals;
+        var signal_keys = Object.keys(signals);
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys);
         // sort keys by votes and groups
         var key_groups = this.organize_signal_keys(signal_keys);
         debug_log('Voter render - key_groups', key_groups, key_groups.a);
         if (this.props.group_mode) var keys = this.set_signal_order(key_groups[this.props.user.gid]);else var keys = this.set_signal_order(key_groups.a);
-        // var keys = this.organize_signal_keys(signal_keys);
-        // debug_log('Voter render - keys', keys);
-        // setup ordering
-        //keys = this.set_signal_order(keys)
         debug_log('Voter render - keys after order', keys);
 
         var my_signal = null;
-        if (this.props.signals[this.props.user.uid]) {
+        if (signals[this.props.user.uid]) {
             my_signal = _react2['default'].createElement(
                 'div',
                 { className: 'signal my_signal' },
@@ -370,7 +366,7 @@ var Voter = _react2['default'].createClass({
                                 'button',
                                 { className: 'modify_button',
                                     onClick: function () {
-                                        return _this3.props.update_state_signal(_this3.props.signals[_this3.props.user.uid].text.replace(/\.|\n/g, ""));
+                                        return _this3.props.update_state_signal(signals[_this3.props.user.uid].text.replace(/\.|\n/g, ""));
                                     } },
                                 ' '
                             )
@@ -381,7 +377,7 @@ var Voter = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 'span',
                                 { className: 'signal_text' },
-                                this.props.signals[this.props.user.uid].text
+                                signals[this.props.user.uid].text
                             ),
                             _react2['default'].createElement(
                                 'button',
@@ -389,7 +385,7 @@ var Voter = _react2['default'].createClass({
                                     onClick: function () {
                                         return alert('you cannot vote for yourself');
                                     } },
-                                this.props.signals[this.props.user.uid].vote_count
+                                signals[this.props.user.uid].vote_count
                             ),
                             _react2['default'].createElement(
                                 'span',
@@ -448,7 +444,7 @@ var Voter = _react2['default'].createClass({
 
                 //Object.keys(this.props.signals).map((signal_key) => {
                 //keys.slice(0,config.voter.show_n_signals).map(
-                keys.slice(0, config.voter.show_n_signals).map(function (signal_key) {
+                keys.map(function (signal_key) {
                     debug_log('Voter render - signal_key', signal_key);
                     var this_class_name = 'signal';
                     if (_this3.props.user.uid === signal_key) this_class_name += ' my_signal';
@@ -463,13 +459,13 @@ var Voter = _react2['default'].createClass({
                     //                   function(v){
                     //                        return v == signal_key;
                     //                   }).length;
-                    debug_log('Voter render - vote_count', _this3.props.signals[signal_key].vote_count);
+                    debug_log('Voter render - vote_count', signals[signal_key].vote_count);
 
                     return _react2['default'].createElement(Signal, {
                         this_class_name: this_class_name,
                         voter: _this3.props.user,
                         key: signal_key,
-                        signal: _this3.props.signals[signal_key],
+                        signal: signals[signal_key],
                         update_state_signal: _this3.props.update_state_signal,
                         update_state_vote: _this3.props.update_state_vote
                     });
