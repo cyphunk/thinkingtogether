@@ -331,6 +331,7 @@ var Voter = _react2['default'].createClass({
         console.log('Voter render - keys', keys);
         // setup ordering
         keys = this.set_signal_order(keys);
+        console.log('Voter render - keys after order', keys);
 
         var my_signal = null;
         if (this.props.signals[this.props.user.uid]) {
