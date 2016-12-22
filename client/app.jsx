@@ -514,9 +514,9 @@ var App = React.createClass({
         console.log('App._admin_command() - data', command);
         if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
-                var {group_mode} = this.state;
+                var {group_mode, signal} = this.state;
                 group_mode = command.value;
-                this.setState({group_mode});
+                this.setState({group_mode, signal});
                 console.log('App._admin_command() - state', this.state);
             }
         }

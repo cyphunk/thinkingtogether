@@ -626,10 +626,12 @@ var App = _react2['default'].createClass({
         console.log('App._admin_command() - data', command);
         if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
-                var group_mode = this.state.group_mode;
+                var _state4 = this.state;
+                var group_mode = _state4.group_mode;
+                var signal = _state4.signal;
 
                 group_mode = command.value;
-                this.setState({ group_mode: group_mode });
+                this.setState({ group_mode: group_mode, signal: signal });
                 console.log('App._admin_command() - state', this.state);
             }
         } else if (command.method == 'reload_page') {
@@ -655,10 +657,10 @@ var App = _react2['default'].createClass({
     // called when epoch has ended. server sends chosen signals
     _epoch_active_signals: function _epoch_active_signals(active_signals) {
         console.log('App._epoch_active_signals() - active_signals', active_signals);
-        var _state4 = this.state;
-        var user = _state4.user;
-        var signals = _state4.signals;
-        var votes = _state4.votes;
+        var _state5 = this.state;
+        var user = _state5.user;
+        var signals = _state5.signals;
+        var votes = _state5.votes;
 
         // setup certain signal list constants:
         current_neighbor = votes[user.uid];
@@ -699,9 +701,9 @@ var App = _react2['default'].createClass({
         this.setState({ selected_tab: selected_tab });
         // remove \n and .
         if (selected_tab == 0) {
-            var _state5 = this.state;
-            var signal = _state5.signal;
-            var signals = _state5.signals;
+            var _state6 = this.state;
+            var signal = _state6.signal;
+            var signals = _state6.signals;
 
             // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
             //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
