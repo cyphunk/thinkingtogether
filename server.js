@@ -14,6 +14,11 @@ var group_mode = false
 var config = require('./config')
 // just store signular epoch to be sent to clients and controlled via admin
 
+function debug_log() {
+    if (config.debug)
+        console.log.apply(this, arguments)
+}
+
 
 process.env.NODE_ENV = config.server.mode
 
@@ -88,21 +93,21 @@ var users = (function () {
 		return users[new_uid]
 	}
 	var get_or_new = function (uid) {
-		console.log('users.get_or_new()')
+		debug_log('users.get_or_new()')
 		var sid = null;
 		if (!uid || sessionid != uid.split('#').shift()) {
-			console.log('users.get_or_new - missing uid or sessionid wrong', uid, sessionid)
+			debug_log('users.get_or_new - missing uid or sessionid wrong', uid, sessionid)
 			return _new()
 		}
 		else {
 			// if the server restarted with the same sessionid argument
 			// we will have conditions were clients reconnect but the db is empty actuall
-			console.log('users.get_or_new - uid and sid already valid. (browser refreshed?)', uid, sid, sessionid)
+			debug_log('users.get_or_new - uid and sid already valid. (browser refreshed?)', uid, sid, sessionid)
 			if (users[uid] && users[uid].name) {
 				return users[uid]
 			}
 			else {
-				console.log('yet still, can\'t find uid in db with name. perhaps server restarted without changing sessionid')
+				debug_log('yet still, can\'t find uid in db with name. perhaps server restarted without changing sessionid')
 				return _new()
 			}
 		}
@@ -218,7 +223,7 @@ var epoch = (function () {
 		b: {text: '', user: {uid: null, name: ''}} }
 	}
 	var _run_on_start_end = function () {
-		console.log('epoch._run_on_end()');
+		debug_log('epoch._run_on_end()');
 		var progress = { percent: -1,
 						 autoIncrement: false }
 		_set_active_signal()
@@ -226,7 +231,7 @@ var epoch = (function () {
 
 	}
 	var _set_active_signal = function () {
-		console.log('epoch._set_active_signal()');
+		debug_log('epoch._set_active_signal()');
 
 		var sigs = signals.get()
 		var usrs = users.get()
@@ -255,7 +260,7 @@ var epoch = (function () {
 				}
 			}
 		});
-		console.log('highest_a',highest_a)
+		debug_log('highest_a',highest_a)
 		if (highest_b.uid != null && group_mode) {
 			active_signals.b.text = sigs[highest_b.uid].text
 			active_signals.b.user = usrs[highest_b.uid]
@@ -274,16 +279,16 @@ var epoch = (function () {
 			// remove votes
 			votes.free(highest_a.uid)
 		}
-		console.log('epoch._set_active_signal - active', active_signals);
+		debug_log('epoch._set_active_signal - active', active_signals);
 		//////////////////////////////////////////////
 		io.emit('epoch:active_signals', active_signals)
 		//////////////////////////////////////////////
 	}
 	var _start_pause = function () {
-		console.log('epoch._start_pause()');
-		console.log('epoch._start_pause - time', config.epoch.pause_length);
+		debug_log('epoch._start_pause()');
+		debug_log('epoch._start_pause - time', config.epoch.pause_length);
 		if (config.epoch.pause_forced) {
-			console.log('TODO: handle pause_forced')
+			debug_log('TODO: handle pause_forced')
 		}
 		if (pause_timer)
 			clearTimeout(pause_timer);
@@ -292,7 +297,7 @@ var epoch = (function () {
 		io.emit('epoch:stop_progress')
 	}
 	var _run_on_pause_end = function () {
-		console.log('epoch._run_on_pause_end()');
+		debug_log('epoch._run_on_pause_end()');
 		if (config.epoch.start_new_epoch_after_pause) {
 			start()
 		}
@@ -301,16 +306,16 @@ var epoch = (function () {
 		return active_signals
 	}
 	var start = function () {
-		console.log('epoch.start()');
+		debug_log('epoch.start()');
 		if (!master_id) {
-			console.log('epoch.start - no master_id');
+			debug_log('epoch.start - no master_id');
 			return
 		}
-		console.log('epoch.start - time', config.epoch.seed_length);
+		debug_log('epoch.start - time', config.epoch.seed_length);
 		var progress = { percent: 0,
 						 autoIncrement: true,
 						 intervalTime: config.epoch.seed_length*10 }
-		console.log('epoch.start - progress', progress);
+		debug_log('epoch.start - progress', progress);
 		////////////////////////////////
 		io.emit('epoch:start', progress)
 		////////////////////////////////
@@ -320,10 +325,10 @@ var epoch = (function () {
 						   (config.epoch.seed_length+1)*1000);
 	}
 	var set_master_id = function (id) {
-		console.log('epoch.set_master_id()');
-		console.log('epoch.set_master_id - new id, old id', id, master_id);
+		debug_log('epoch.set_master_id()');
+		debug_log('epoch.set_master_id - new id, old id', id, master_id);
 		// if (master_id) {
-		// 	console.log('epoch.set_master_id - id already set', master_id);
+		// 	debug_log('epoch.set_master_id - id already set', master_id);
 		// 	return false
 		// }
 		master_id = id
@@ -394,14 +399,14 @@ if (process.stdout.isTTY) {
 
 
 var socket = function (socket) {
-	console.log('socket()')
-	console.log('socket() - connect query', socket.handshake.query)
+	debug_log('socket()')
+	debug_log('socket() - connect query', socket.handshake.query)
 
 	// only register user uid if this is not the stage or admin page
 	var is_stage = socket.handshake.headers.referer.match('/stage') ? true : false
 	var is_monitor = socket.handshake.headers.referer.match('/monitor') ? true : false
 	var is_admin = socket.handshake.headers.referer.match('/admin') ? true : false
-	console.log('socket() - is admin:', is_admin, 'stage:', is_stage)
+	debug_log('socket() - is admin:', is_admin, 'stage:', is_stage)
 
 	var user = null
 	// a valid session uid sent when user accidentally refresh browser.
@@ -409,9 +414,9 @@ var socket = function (socket) {
 		var uid = null
 		if (socket.handshake.query && socket.handshake.query.uid)
 		uid = socket.handshake.query.uid
-		console.log('socket() - query uid', uid)
+		debug_log('socket() - query uid', uid)
 		user = users.get_or_new(uid)
-		console.log("socket() - user, users[]", user, "\n",users.get())
+		debug_log("socket() - user, users[]", user, "\n",users.get())
 	}
 	// for stage record the id
 	if (is_stage || is_monitor) {
@@ -450,7 +455,7 @@ var socket = function (socket) {
 	// broadcast a user's message to other users
 	socket.on('send:signal', function (data) {
 		if (config.server.reject_empty_signal && !data.text) return // ignore empty
-		console.log('socket.on(send:signal)', data)
+		debug_log('socket.on(send:signal)', data)
 		signals.put(data)
 		socket.broadcast.emit('send:signal', {
 			user: user,
@@ -459,22 +464,22 @@ var socket = function (socket) {
 	})
 
 	socket.on('send:vote', function (data) {
-		console.log('socket.on(send:vote)')
-		console.log('socket.on(send:vote) - data', data)
+		debug_log('socket.on(send:vote)')
+		debug_log('socket.on(send:vote) - data', data)
 		// TODO Add function to be used to check if a new incoming value is actually ne
 		votes.make(data.voter, data.signal)
 		socket.broadcast.emit('send:vote', data)
 	})
 
 	socket.on('admin:command', function (data) {
-		console.log('socket.on(admin:command)')
-		console.log('socket.on(admin:command) - data', data)
+		debug_log('socket.on(admin:command)')
+		debug_log('socket.on(admin:command) - data', data)
 		if (!data.password || data.password != password) {
 			socket.emit('error:message', {
 				message: 'bad or missing password'
 			})
-			console.log('socket.on(admin:command) - bad or missing admin password')
-			console.log(data.password, '!=', password)
+			debug_log('socket.on(admin:command) - bad or missing admin password')
+			debug_log(data.password, '!=', password)
 			return
 		}
 		if (data.command.method == 'set_state') {
@@ -500,14 +505,14 @@ var socket = function (socket) {
 	})
 
 	socket.on('admin:epoch', function (data) {
-		console.log('socket.on(admin:epoch)')
-		console.log('socket.on(admin:epoch) - data', data)
+		debug_log('socket.on(admin:epoch)')
+		debug_log('socket.on(admin:epoch) - data', data)
 		if (!data.password || data.password != password) {
 			socket.emit('error:message', {
 				message: 'bad or missing password in url #: \"'+data.password+'\"'
 			})
-			console.log('socket.on(admin:epoch) - bad or missing admin password')
-			console.log(data.password, '!=', password)
+			debug_log('socket.on(admin:epoch) - bad or missing admin password')
+			debug_log(data.password, '!=', password)
 			return
 		}
 
@@ -525,14 +530,14 @@ var socket = function (socket) {
 	})
 
 	socket.on('admin:stage', function (data) {
-		console.log('socket.on(admin:stage)')
-		console.log('socket.on(admin:stage) - data', data)
+		debug_log('socket.on(admin:stage)')
+		debug_log('socket.on(admin:stage) - data', data)
 		if (!data.password || data.password != password) {
 			socket.emit('error:message', {
 				message: 'bad or missing password: \"'+data.password+'\"'
 			})
-			console.log('socket.on admin:stage - bad or missing admin password')
-			console.log(data.password, '!=', password)
+			debug_log('socket.on admin:stage - bad or missing admin password')
+			debug_log(data.password, '!=', password)
 			return
 		}
 		config.stage = data.stage
@@ -560,7 +565,7 @@ var socket = function (socket) {
 
 	// clean up when a user leaves, and broadcast it to other users
 	socket.on('disconnect', function () {
-		console.log('disconnect user', user)
+		debug_log('disconnect user', user)
 		socket.broadcast.emit('user:left', {
 			user: user
 		})
@@ -576,7 +581,7 @@ var io = require('socket.io').listen(server)
 io.sockets.on('connection', socket)
 io.use(function (socket, next) {
 	var handshake = socket.handshake
-	console.log('io.use() - handshake', handshake.query)
+	debug_log('io.use() - handshake', handshake.query)
 	next()
 })
 /* Start server */
