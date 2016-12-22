@@ -368,6 +368,7 @@ config.voter = {};
 config.stage = {};
 config.epoch = {};
 config.admin = {};
+config.debug = false; // set to true to turn on client debuggin
 
 config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
