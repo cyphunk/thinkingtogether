@@ -218,7 +218,7 @@ var Voter = React.createClass({
             if (signals[k].text.length < config.voter.min_signal_length)
                 return;
             console.log('Voter.organize_signal_keys key,gid', k, signals[k].user.gid)
-            if (group_mode && signal.user.gid == 'b')
+            if (group_mode && signals[k].user.gid == 'b')
                 groups.b.push(key)
             else
                 groups.a.push(key) })
