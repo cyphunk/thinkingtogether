@@ -77,17 +77,19 @@ hr { display: none}
 }
 .group_a {
     _float: left;
-    width: 50%;
+    width: 100%;
 }
 .group_b {
-    width: 50%;
+    width: 100%;
     _float: right;
 }
 .float_left {
     float: left;
+    width: 50%;
 }
 .float_right {
     float: right;
+    width: 50%;
 }
 /*.first_signal {
     border-bottom: 0.09em solid #fff;
@@ -127,6 +129,10 @@ hr { display: none}
 }
 .group_b .active_signal {
     color: #f99;
+}
+.group_a {
+    padding-bottom: 2em;
+    height: 50%;
 }
 /*https://facebook.github.io/react/docs/animation.html*/
 /*.example-enter {
