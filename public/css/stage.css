@@ -155,7 +155,9 @@ hr { display: none}
   transition: opacity .5s ease-in;
 }*/
 
-
+.react-progress-bar{
+    height: 10px;
+}
 .react-progress-bar svg {
     height: 10px;
 }
