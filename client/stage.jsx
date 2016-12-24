@@ -109,6 +109,8 @@ var App = React.createClass({
 		// this.setState({progress, epoch_timer});
 		this.setState({progress});
 		// new method
+		progress_bar_a = document.getElementById('progress_bar_a')
+		progress_bar_a.innerHTML = ''
 		progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
 		    strokeWidth: 2,
 			color: '#ffffff'
@@ -117,6 +119,8 @@ var App = React.createClass({
 			console.log('progress_bar_a finished')
 		});
 		if (group_mode) {
+			progress_bar_b = document.getElementById('progress_bar_b')
+			progress_bar_b.innerHTML = ''
 			progress_bar_b = new ProgressBar.Line('#progress_bar_b', {
 			    strokeWidth: 2,
 				color: '#ffffff'
