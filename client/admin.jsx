@@ -13,7 +13,6 @@ var App = React.createClass({
 		return {
 			group_mode: false,
 			password: localStorage.password ? localStorage.password : '',
-			stage: config.stage,
 			epoch: config.epoch,
 			config: config
 
@@ -93,6 +92,13 @@ var App = React.createClass({
         this.setState({config});
 		socket.emit('admin:stage', {password: password, stage: config.stage})
     },
+	stage_toggle_side_by_side(){
+        console.log("App.stage_toggle_side_by_side()");
+		var {config, password} = this.state;
+        config.stage.group_side_by_side = !config.stage.group_side_by_side;
+        this.setState({config});
+		socket.emit('admin:stage', {password: password, stage: config.stage})
+    },
 	active_signals_clear(){
 		var {password} = this.state;
 		socket.emit('admin:epoch', {password: password, active_signals_clear: true})
@@ -135,6 +141,9 @@ var App = React.createClass({
 				</tr><tr>
 					<td><button onClick={this.stage_toggle_show_signal_activity}>toggle</button></td>
 					<td><span>show signal activity (is now {this.state.config.stage.show_signal_activity ? 'ON' : 'OFF'})</span></td>
+				</tr><tr>
+					<td><button onClick={this.stage_toggle_side_by_side}>toggle</button></td>
+					<td><span>show groups side by side (is now {this.state.config.stage.group_side_by_side ? 'ON' : 'OFF'})</span></td>
 				</tr><tr>
 					<td></td><th><span>Epoch</span></th>
 				</tr><tr>

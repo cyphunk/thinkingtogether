@@ -13,6 +13,9 @@ body {
     cursor: none;
 
 }
+#app {
+    padding-top: 100px;
+}
 .first_container {
     padding: 10px 2em;
     padding-bottom: 140%; /*help group color extend full screen*/
@@ -73,11 +76,17 @@ hr { display: none}
     margin: auto;
 }
 .group_a {
-    float: left;
+    _float: left;
     width: 50%;
 }
 .group_b {
     width: 50%;
+    _float: right;
+}
+.float_left {
+    float: left;
+}
+.float_right {
     float: right;
 }
 /*.first_signal {
@@ -109,6 +118,9 @@ hr { display: none}
 }
 .active_signal {
     font-weight: bold;
+}
+.active_signal .signal_text {
+    font-size: 2em;
 }
 .group_a .active_signal {
     color: #99f;
@@ -142,3 +154,8 @@ hr { display: none}
   opacity: 1;
   transition: opacity .5s ease-in;
 }*/
+
+
+.react-progress-bar svg {
+    height: 10px;
+}

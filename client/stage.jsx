@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import Textarea from 'react-textarea-autosize';
 //import ProgressBar from 'react-progress-bar-plus';
 import ProgressBar from 'progressbar.js';
-import config from '../config';
+var config = require('../config');
 var socket = io.connect();
 
 var progress_bar_a = null
@@ -85,6 +85,14 @@ var App = React.createClass({
             }
         }
 		else
+        if (command.method == 'set_config') {
+            config = command.value
+			if (command.value.stage) {
+				var stage = command.value.stage
+				this.setState({stage})
+			}
+        }
+		else
 		if (command.method == 'reload_page') {
 			window.location.reload(false);
 		}
@@ -94,6 +102,7 @@ var App = React.createClass({
 		console.log('App._admin_stage - data', data);
         var {stage} = this.state;
         stage = data;
+		config.stage = data;
         this.setState({ stage });
         console.log('App._admin_command - state.stage post set_state', this.state.stage);
     },
@@ -113,7 +122,7 @@ var App = React.createClass({
 		progress_bar_a.innerHTML = ''
 		progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
 		    strokeWidth: 2,
-			color: '#ffffff'
+			color: '#99f'
 		});
 		progress_bar_a.animate(1, { duration: progress.intervalTime*100, }, function(){
 			console.log('progress_bar_a finished')
@@ -123,7 +132,7 @@ var App = React.createClass({
 			progress_bar_b.innerHTML = ''
 			progress_bar_b = new ProgressBar.Line('#progress_bar_b', {
 			    strokeWidth: 2,
-				color: '#ffffff'
+				color: '#f99'
 			});
 			progress_bar_b.animate(1, {duration: progress.intervalTime*100}, function(){
 				console.log('progress_bar_b finished')
@@ -293,12 +302,19 @@ var App = React.createClass({
 			);
         }
         else {
+			var groupAClass="signals group_a"
+			var groupBClass="signals group_b"
+			if (config.stage.group_side_by_side) {
+				groupAClass="signals group_a float_left"
+				groupBClass="signals group_b float_right"
+			}
+
             return (
 				<div>
-	                <div className="signals group_a">
+	                <div className={groupAClass}>
 	                	{signal_group_a}
 	                </div>
-					<div className="signals group_b">
+					<div className={groupBClass}>
 	                	{signal_group_b}
 	                </div>
 				</div>
