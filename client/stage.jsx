@@ -26,6 +26,10 @@ var App = React.createClass({
 					autoIncrement: false,
 					intervalTime: 0
 				},
+				style: {
+					fontSize: 1, //em
+					paddingTop: 2 //em
+				}
 		}
 	},
 
@@ -35,7 +39,8 @@ var App = React.createClass({
         socket.on('send:vote', this._vote_recieve);
         socket.on('connection', this._on_connection);
         socket.on('admin:command', this._admin_command);
-        socket.on('admin:stage', this._admin_stage);
+		socket.on('admin:stage', this._admin_stage);
+		socket.on('admin:stagestyle', this._admin_stage_style);
 		socket.on('epoch:start', this._epoch_start);
 		socket.on('epoch:stop_progress', this._epoch_stop_progress);
 		socket.on('epoch:active_signals', this._epoch_active_signals);
@@ -47,7 +52,7 @@ var App = React.createClass({
     },
 	_initialize(data) {
 		console.log('App._initialize()');
-        console.log('App._initialize - data', data);
+        console.log('App._initialize - data', data, data.stage.group_side_by_side);
 		// console.log('App._initialize() - data.handshake', data.handshake);
 		var {users, signals, votes, group_mode, stage, active_signals} = data;
 		this.setState({users, signals, votes, group_mode, stage, active_signals});
@@ -97,7 +102,7 @@ var App = React.createClass({
 			window.location.reload(false);
 		}
     },
-    _admin_stage(data) {
+	_admin_stage(data) {
         console.log('App._admin_stage()');
 		console.log('App._admin_stage - data', data);
         var {stage} = this.state;
@@ -105,6 +110,23 @@ var App = React.createClass({
 		config.stage = data;
         this.setState({ stage });
         console.log('App._admin_command - state.stage post set_state', this.state.stage);
+    },
+	_admin_stage_style(data) {
+        console.log('App._admin_stage_style()');
+		console.log('App._admin_stage_style - data', data);
+		var {style} = this.state;
+		if (data.command == 'font plus')
+				style.fontSize += 0.1
+		else if (data.command == 'font minus')
+				style.fontSize -= 0.1
+		else if (data.command == 'padding plus')
+				style.paddingTop += 0.1
+		else if (data.command == 'padding minus')
+				style.paddingTop -= 0.1
+		var container = document.getElementById('app')
+		container.style.fontSize = style.fontSize +'em'
+		container.style.paddingTop = style.paddingTop +'em'
+        this.setState({ style });
     },
 	_epoch_start(new_progress) {
 		console.log('App.epoch_start()');
@@ -304,7 +326,7 @@ var App = React.createClass({
         else {
 			var groupAClass="signals group_a"
 			var groupBClass="signals group_b"
-			if (config.stage.group_side_by_side) {
+			if (this.state.stage.group_side_by_side) {
 				groupAClass="signals group_a float_left"
 				groupBClass="signals group_b float_right"
 			}

@@ -14,7 +14,8 @@ body {
 
 }
 #app {
-    padding-top: 100px;
+    padding-top: 2em;
+    transition: padding 0.6s ease-in-out, font-size 0.6s ease-in-out;
 }
 .first_container {
     padding: 10px 2em;

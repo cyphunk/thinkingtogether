@@ -378,6 +378,9 @@ if (process.stdout.isTTY) {
 		else if ( key === '\u000c') { // ctrl+l aka load
 		  load_state()
 		}
+		else if ( key === '\u0004') { // ctrl+d set debug
+			config.debug = !config.debug
+		}
 		else if ( key === '\u0013') { // ctrl+s aka save
 		  save_state()
 		}
@@ -546,6 +549,20 @@ var socket = function (socket) {
 		}
 		config.stage = data.stage
 		socket.broadcast.emit('admin:stage', data.stage)
+	})
+
+	socket.on('admin:stagestyle', function (data) {
+		debug_log('socket.on(admin:stagestyle)')
+		debug_log('socket.on(admin:stagestyle) - data', data)
+		if (!data.password || data.password != password) {
+			socket.emit('error:message', {
+				message: 'bad or missing password: \"'+data.password+'\"'
+			})
+			debug_log('socket.on admin:stage - bad or missing admin password')
+			debug_log(data.password, '!=', password)
+			return
+		}
+		socket.broadcast.emit('admin:stagestyle', {command: data.command})
 	})
 
 	// validate a user's name change, and broadcast it on success

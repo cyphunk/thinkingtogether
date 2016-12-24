@@ -99,6 +99,26 @@ var App = React.createClass({
         this.setState({config});
 		socket.emit('admin:stage', {password: password, stage: config.stage})
     },
+	stage_font_plus(){
+        console.log("App.stage_font_plus()");
+		var {password} = this.state;
+		socket.emit('admin:stagestyle', {password: password, command: 'font plus'})
+    },
+	stage_font_minus(){
+        console.log("App.stage_font_minud()");
+		var {password} = this.state;
+		socket.emit('admin:stagestyle', {password: password, command: 'font minus'})
+    },
+	stage_padding_plus(){
+        console.log("App.stage_padding_plus()");
+		var {password} = this.state;
+		socket.emit('admin:stagestyle', {password: password, command: 'padding plus'})
+    },
+	stage_padding_minus(){
+        console.log("App.stage_padding_minud()");
+		var {password} = this.state;
+		socket.emit('admin:stagestyle', {password: password, command: 'padding minus'})
+    },
 	active_signals_clear(){
 		var {password} = this.state;
 		socket.emit('admin:epoch', {password: password, active_signals_clear: true})
@@ -184,9 +204,17 @@ var App = React.createClass({
 			<span onClick={function(e) {document.getElementById('advanced').style.display = 'block'}}>+</span>
 			<span onClick={function(e) {document.getElementById('advanced').style.display = 'none'}}>-</span>
 			</div>
-			<div id='advanced'>Advanced options:<br/><button onClick={this.toggle_debug_mode}>toggle</button><br/>
-			<span>debug mode (is now {this.state.config.debug ? 'ON' : 'OFF'})</span></div>
+			<div id='advanced'>Advanced options:<br/>
+				<button onClick={this.toggle_debug_mode}>toggle</button>
+				<span>debug mode (is now {this.state.config.debug ? 'ON' : 'OFF'})</span><br/>
+				<button onClick={this.stage_font_plus}>+</button>
+				<button onClick={this.stage_font_minus}>-</button>
+				<span>font</span><br/>
+				<button onClick={this.stage_padding_plus}>+</button>
+				<button onClick={this.stage_padding_minus}>-</button>
+				<span>padding</span><br/>
 		    </div>
+			</div>
 		);
 	}
 });
