@@ -590,38 +590,43 @@ var App = React.createClass({
         // TODO Show message to the user when it was their signal that won
         if (active_signals.a.user && active_signals.a.user.uid) {
             debug_log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid)
-            // purge signal
-            delete signals[active_signals.a.user.uid] //.text = ''
-            if (active_signals.a.user.uid == current_selected)
-                current_selected = undefined
-            // purge vote
-            Object.keys(votes).forEach((k) => {
-                if (votes[k] == active_signals.a.user.uid)
-                    delete votes[k] })
-            this.setState({signals,votes})
-            if (active_signals.a.user.uid == user.uid) {
-                debug_log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
-                if (config.epoch.winner_switches_to_write_tab)
-                    this.setState({signal: '',                 selected_tab: 0 })
-                else
-                    this.setState({signal: ''})
+            if (config.epoch.delete_winner) {
+                // purge signal
+                delete signals[active_signals.a.user.uid] //.text = ''
+                if (active_signals.a.user.uid == current_selected)
+                    current_selected = undefined
+                // purge vote
+                    Object.keys(votes).forEach((k) => {
+                        if (votes[k] == active_signals.a.user.uid)
+                            delete votes[k] })
+                this.setState({signals,votes})
+                // purge writer if we are winner
+                if (active_signals.a.user.uid == user.uid) {
+                    debug_log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
+                    if (config.epoch.winner_switches_to_write_tab)
+                        this.setState({signal: '',                 selected_tab: 0 })
+                    else
+                        this.setState({signal: ''})
+                }
             }
         }
         if (active_signals.b.user && active_signals.b.user.uid) {
             debug_log('App._epoch_active_signals - b key', active_signals.b.user.uid, user.uid)
-            delete signals[active_signals.b.user.uid] //.text = ''
-            if (active_signals.b.user.uid == current_selected)
-                current_selected = undefined
-            Object.keys(votes).forEach((k) => {
-                if (votes[k] == active_signals.b.user.uid)
-                    delete votes[k] })
-            this.setState({signals, votes})
-            if (active_signals.b.user.uid == user.uid) {
-                debug_log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
-                if (config.epoch.winner_switches_to_write_tab)
-                    this.setState({signal: '',                 selected_tab: 0 })
-                else
-                    this.setState({signal: '',                 selected_tab: 0 })
+            if (config.epoch.delete_winner) {
+                delete signals[active_signals.b.user.uid] //.text = ''
+                if (active_signals.b.user.uid == current_selected)
+                    current_selected = undefined
+                Object.keys(votes).forEach((k) => {
+                    if (votes[k] == active_signals.b.user.uid)
+                        delete votes[k] })
+                this.setState({signals, votes})
+                if (active_signals.b.user.uid == user.uid) {
+                    debug_log('App._epoch_active_signals is us',config.epoch.winner_switches_to_write_tab)
+                    if (config.epoch.winner_switches_to_write_tab)
+                        this.setState({signal: '',                 selected_tab: 0 })
+                    else
+                        this.setState({signal: '',                 selected_tab: 0 })
+                }
             }
         }
     },

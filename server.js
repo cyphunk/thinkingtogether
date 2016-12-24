@@ -265,19 +265,23 @@ var epoch = (function () {
 			active_signals.b.text = sigs[highest_b.uid].text
 			active_signals.b.user = usrs[highest_b.uid]
 			// remove signal
-			//signals.put({user: usrs[highest_b.uid], text: ''})
-			signals.free(highest_b.uid)
-			// remove votes
-			votes.free(highest_b.uid)
+			if (config.epoch.delete_winner) {
+				//signals.put({user: usrs[highest_b.uid], text: ''})
+				signals.free(highest_b.uid)
+				// remove votes
+				votes.free(highest_b.uid)
+			}
 		}
 		if (highest_a.uid != null) {
 			active_signals.a.text = sigs[highest_a.uid].text
 			active_signals.a.user = usrs[highest_a.uid]
 			// clear winning entry
-			//signals.put({user: usrs[highest_a.uid], text: ''})
-			signals.free(highest_a.uid)
-			// remove votes
-			votes.free(highest_a.uid)
+			if (config.epoch.delete_winner) {
+				//signals.put({user: usrs[highest_a.uid], text: ''})
+				signals.free(highest_a.uid)
+				// remove votes
+				votes.free(highest_a.uid)
+			}
 		}
 		debug_log('epoch._set_active_signal - active', active_signals);
 		//////////////////////////////////////////////
