@@ -45,7 +45,7 @@ config.epoch.pause_forced = false  // when true client interface fade out all bu
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false  // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true  // if true then whoever wens an epoch will be switched to the writer tab in their ui
-config.epoch.delete_winner = false
+config.epoch.delete_winner = true
 
 
 module.exports = config
