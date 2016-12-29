@@ -188,9 +188,6 @@ var App = React.createClass({
 		console.log('App._epoch_active_signals - new active signals', new_active_signals);
 		// get highest vote for group
 		var {signals, active_signals, votes} = this.state
-		active_signals = new_active_signals
-		this.setState({active_signals})
-
 		if (active_signals.config.sound_on_signal_chosen) {
 			if (active_signals.a.text != new_active_signals.a.text) {
 				document.getElementById('epoch_sound').play()
@@ -201,6 +198,11 @@ var App = React.createClass({
 					document.getElementById('epoch_sound').play()
 				}
 		}
+
+
+		active_signals = new_active_signals
+		this.setState({active_signals})
+
 
 		// clear out
 		if (active_signals.a.user) {
