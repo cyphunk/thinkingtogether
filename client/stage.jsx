@@ -343,7 +343,7 @@ var App = React.createClass({
             return (
                 <div className="signals">
                 {signal_group_a}
-				<audio ref="epoch_sound" id="epoch_sound"  src="/beep.mp3"  autoplay="false" />
+				<audio ref="epoch_sound" id="epoch_sound"  src="/beep.mp3"  autoPlay="false" />
 				</div>
 			);
         }
@@ -363,7 +363,7 @@ var App = React.createClass({
 					<div className={groupBClass}>
 	                	{signal_group_b}
 	                </div>
-					<audio ref="epoch_sound" id="epoch_sound" src="/beep.mp3"  autoplay="false" />
+					<audio ref="epoch_sound" id="epoch_sound" src="/beep.mp3"  autoPlay="false" />
 				</div>
 			);
 
