@@ -188,7 +188,7 @@ var App = React.createClass({
 		console.log('App._epoch_active_signals - new active signals', new_active_signals);
 		// get highest vote for group
 		var {signals, active_signals, votes} = this.state
-		if (active_signals.config.sound_on_signal_chosen) {
+		if (new_active_signals.config.sound_on_signal_chosen) {
 			if (active_signals.a.text != new_active_signals.a.text) {
 				document.getElementById('epoch_sound').play()
 			}
@@ -275,7 +275,7 @@ var App = React.createClass({
             var signal = signals[key];
             if (signal.text.length < config.voter.min_signal_length)
                 return;
-			console.log('config>', config.epoch.require_min_votes, signal.vote_count)
+			// console.log('config>', config.epoch.require_min_votes, signal.vote_count)
 			// BUGBUG TODO: Fuck I dont know but still some signals without proper threshold show up
 			if (config.epoch.require_min_votes &&
 				config.epoch.require_min_votes > 0 &&
