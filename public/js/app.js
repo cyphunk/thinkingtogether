@@ -745,6 +745,9 @@ var App = _react2['default'].createClass({
         if (active_signals.config.clear_votes_on_epoch) {
             this.setState({ votes: {} });
         }
+        if (active_signals.config.clear_signals_on_epoch) {
+            this.setState({ signals: {} });
+        }
     },
     on_tab_select: function on_tab_select(selected_tab, last) {
         var user = this.state.user;
@@ -876,8 +879,10 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
 config.epoch.delete_winner = true;
-config.epoch.require_min_votes = 1; // set to 0 or uncomment for no limit
+config.epoch.require_min_votes = 1; // set to 0 for no limit
 config.epoch.clear_votes_on_epoch = true;
+config.epoch.clear_signals_on_epoch = true;
+config.epoch.sound_on_signal_chosen = true;
 
 module.exports = config;
 

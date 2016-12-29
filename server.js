@@ -242,7 +242,7 @@ var epoch = (function () {
 		Object.keys(sigs).map((key) => {
 			var vote_count = Object.keys(vts).filter(function(voter){
 							 return vts[voter] == key; }).length;
-			//if (config.epoch.require_min_votes && vote_count <= config.epoch.require_min_votes) return;
+			if (config.epoch.require_min_votes && vote_count < config.epoch.require_min_votes) return;
 			if (!group_mode) {
 				if (vote_count > highest_a.count) {
 					highest_a = {count: vote_count, uid: key}
@@ -289,7 +289,14 @@ var epoch = (function () {
 		if (config.epoch.clear_votes_on_epoch) {
 			votes.reset()
 		}
-		active_signals.config = {clear_votes_on_epoch: config.epoch.clear_votes_on_epoch}
+		if (config.epoch.clear_signals_on_epoch) {
+			signals.reset()
+		}
+		active_signals.config = {
+			clear_votes_on_epoch: config.epoch.clear_votes_on_epoch,
+			clear_signals_on_epoch: config.epoch.clear_signals_on_epoch,
+			sound_on_signal_chosen: config.epoch.sound_on_signal_chosen,
+		}
 		debug_log('epoch._set_active_signal - active', active_signals);
 		//////////////////////////////////////////////
 		io.emit('epoch:active_signals', active_signals)
@@ -535,11 +542,14 @@ var socket = function (socket) {
 		}
 
 		if (data.epoch && data.epoch.start &&
-			data.epoch.start == true)
+			data.epoch.start == true) {
 			epoch.start()
+		}
 		else
-		if (data.epoch)
+		if (data.epoch) {
 			config.epoch = data.epoch
+			io.emit('epoch:config', config.epoch)
+		}
 		else
 		if (data.active_signals_clear == true) {
 			epoch.reset()

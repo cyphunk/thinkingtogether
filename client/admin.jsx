@@ -142,6 +142,9 @@ var App = React.createClass({
 		config.epoch.pause_length = parseFloat(this.pause_length.value);
 		config.epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
 		config.epoch.clear_votes_on_epoch = this.clear_votes_on_epoch.checked
+		config.epoch.clear_signals_on_epoch = this.clear_signals_on_epoch.checked
+		config.epoch.require_min_votes = parseFloat(this.require_min_votes.value)
+		config.epoch.sound_on_signal_chosen = this.sound_on_signal_chosen.checked
 		this.setState({ config });
 		socket.emit('admin:epoch', {password: password, epoch: config.epoch});
 	},
@@ -211,6 +214,13 @@ var App = React.createClass({
 									     onBlur={this.handle_epoch_submit}
 									     /></td>
 								  <td><span>Pause length</span></td>
+							  </tr><tr>
+  								  <td><input type="text" size="4"
+  										 defaultValue={this.state.config.epoch.require_min_votes}
+  										 ref={(i) => this.require_min_votes = i}
+  									     onBlur={this.handle_epoch_submit}
+  									     /></td>
+  								  <td><span>Signal vote threshold</span></td>
 							</tr><tr>
 								  <td><input type="checkbox"
 								  		 defaultChecked={this.state.config.epoch.start_new_epoch_after_pause}
@@ -219,10 +229,22 @@ var App = React.createClass({
 								  <td><span>Start next epoch directly after pause ends</span></td>
 						  </tr><tr>
 								  <td><input type="checkbox"
+								  		 defaultChecked={this.state.config.epoch.sound_on_signal_chosen}
+										 ref={(i) => this.sound_on_signal_chosen = i}
+									     onChange={this.handle_epoch_submit} /></td>
+								  <td><span>Beep on signal chosen</span></td>
+						  </tr><tr>
+								  <td><input type="checkbox"
 								  		 defaultChecked={this.state.config.epoch.clear_votes_on_epoch}
 										 ref={(i) => this.clear_votes_on_epoch = i}
 									     onChange={this.handle_epoch_submit} /></td>
 								  <td><span>Clear votes on each epoch</span></td>
+						  </tr><tr>
+								  <td><input type="checkbox"
+								  		 defaultChecked={this.state.config.epoch.clear_signals_on_epoch}
+										 ref={(i) => this.clear_signals_on_epoch = i}
+									     onChange={this.handle_epoch_submit} /></td>
+								  <td><span>Clear signals on each epoch</span></td>
 							</tr><tr>
 								  <td></td><td><button onClick={this.handle_epoch_bang}>Start Epoch</button></td>
 						  </tr><tr>

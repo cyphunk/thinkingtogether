@@ -647,6 +647,9 @@ var App = React.createClass({
         if (active_signals.config.clear_votes_on_epoch) {
             this.setState({votes: {}})
         }
+        if (active_signals.config.clear_signals_on_epoch) {
+            this.setState({signals: {}})
+        }
     },
     on_tab_select (selected_tab,last) {
         var {user} = this.state

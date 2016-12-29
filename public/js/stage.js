@@ -65,6 +65,7 @@ var App = _react2['default'].createClass({
 		socket.on('admin:stage', this._admin_stage);
 		socket.on('admin:stagestyle', this._admin_stage_style);
 		socket.on('epoch:start', this._epoch_start);
+		socket.on('epoch:config', this._epoch_config);
 		socket.on('epoch:stop_progress', this._epoch_stop_progress);
 		socket.on('epoch:active_signals', this._epoch_active_signals);
 		socket.on('epoch:active_signals_clear', this._epoch_active_signals_clear);
@@ -189,6 +190,10 @@ var App = _react2['default'].createClass({
 			});
 		}
 	},
+	_epoch_config: function _epoch_config(data) {
+		console.log('App._epoch_config() - data', data);
+		config.epoch = data;
+	},
 	_epoch_stop_progress: function _epoch_stop_progress() {
 		console.log('App.epoch_stop_progress()');
 		progress_bar_a = document.getElementById('progress_bar_a');
@@ -233,6 +238,13 @@ var App = _react2['default'].createClass({
 		// shall we delete votes before next epoch
 		if (active_signals.config.clear_votes_on_epoch) {
 			this.setState({ votes: {} });
+		}
+		if (active_signals.config.clear_signals_on_epoch) {
+			this.setState({ signals: {} });
+		}
+		if (active_signals.config.sound_on_signal_chosen) {
+			var sound = document.getElementById('epoch_sound');
+			sound.play();
 		}
 
 		// TODO BUG BUG
@@ -280,6 +292,9 @@ var App = _react2['default'].createClass({
 		sorted.map(function (key) {
 			var signal = signals[key];
 			if (signal.text.length < config.voter.min_signal_length) return;
+			console.log('config>', config.epoch.require_min_votes, signal.vote_count);
+			// BUGBUG TODO: Fuck I dont know but still some signals without proper threshold show up
+			if (config.epoch.require_min_votes && config.epoch.require_min_votes > 0 && signal.vote_count < config.epoch.require_min_votes) return;
 			// console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
 			if (group_mode && signal.user.gid == 'b') groups.b.push(key);else groups.a.push(key);
 		});
@@ -360,7 +375,8 @@ var App = _react2['default'].createClass({
 			return _react2['default'].createElement(
 				'div',
 				{ className: 'signals' },
-				signal_group_a
+				signal_group_a,
+				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: '/beep.mp3', autoplay: 'false' })
 			);
 		} else {
 			var groupAClass = "signals group_a";
@@ -382,7 +398,8 @@ var App = _react2['default'].createClass({
 					'div',
 					{ className: groupBClass },
 					signal_group_b
-				)
+				),
+				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: '/beep.mp3', autoplay: 'false' })
 			);
 		}
 	}
@@ -444,8 +461,10 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
 config.epoch.delete_winner = true;
-config.epoch.require_min_votes = 1; // set to 0 or uncomment for no limit
+config.epoch.require_min_votes = 1; // set to 0 for no limit
 config.epoch.clear_votes_on_epoch = true;
+config.epoch.clear_signals_on_epoch = true;
+config.epoch.sound_on_signal_chosen = true;
 
 module.exports = config;
 

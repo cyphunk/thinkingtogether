@@ -182,6 +182,9 @@ var App = _react2['default'].createClass({
 		config.epoch.pause_length = parseFloat(this.pause_length.value);
 		config.epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
 		config.epoch.clear_votes_on_epoch = this.clear_votes_on_epoch.checked;
+		config.epoch.clear_signals_on_epoch = this.clear_signals_on_epoch.checked;
+		config.epoch.require_min_votes = parseFloat(this.require_min_votes.value);
+		config.epoch.sound_on_signal_chosen = this.sound_on_signal_chosen.checked;
 		this.setState({ config: config });
 		socket.emit('admin:epoch', { password: password, epoch: config.epoch });
 	},
@@ -449,6 +452,30 @@ var App = _react2['default'].createClass({
 						_react2['default'].createElement(
 							'td',
 							null,
+							_react2['default'].createElement('input', { type: 'text', size: '4',
+								defaultValue: this.state.config.epoch.require_min_votes,
+								ref: function (i) {
+									return _this.require_min_votes = i;
+								},
+								onBlur: this.handle_epoch_submit
+							})
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Signal vote threshold'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
 							_react2['default'].createElement('input', { type: 'checkbox',
 								defaultChecked: this.state.config.epoch.start_new_epoch_after_pause,
 								ref: function (i) {
@@ -473,6 +500,29 @@ var App = _react2['default'].createClass({
 							'td',
 							null,
 							_react2['default'].createElement('input', { type: 'checkbox',
+								defaultChecked: this.state.config.epoch.sound_on_signal_chosen,
+								ref: function (i) {
+									return _this.sound_on_signal_chosen = i;
+								},
+								onChange: this.handle_epoch_submit })
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Beep on signal chosen'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', { type: 'checkbox',
 								defaultChecked: this.state.config.epoch.clear_votes_on_epoch,
 								ref: function (i) {
 									return _this.clear_votes_on_epoch = i;
@@ -486,6 +536,29 @@ var App = _react2['default'].createClass({
 								'span',
 								null,
 								'Clear votes on each epoch'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', { type: 'checkbox',
+								defaultChecked: this.state.config.epoch.clear_signals_on_epoch,
+								ref: function (i) {
+									return _this.clear_signals_on_epoch = i;
+								},
+								onChange: this.handle_epoch_submit })
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Clear signals on each epoch'
 							)
 						)
 					),
@@ -657,8 +730,10 @@ config.epoch.pause_forced = false; // when true client interface fade out all bu
 config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
 config.epoch.delete_winner = true;
-config.epoch.require_min_votes = 1; // set to 0 or uncomment for no limit
+config.epoch.require_min_votes = 1; // set to 0 for no limit
 config.epoch.clear_votes_on_epoch = true;
+config.epoch.clear_signals_on_epoch = true;
+config.epoch.sound_on_signal_chosen = true;
 
 module.exports = config;
 
