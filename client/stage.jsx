@@ -190,6 +190,18 @@ var App = React.createClass({
 		var {signals, active_signals, votes} = this.state
 		active_signals = new_active_signals
 		this.setState({active_signals})
+
+		if (active_signals.config.sound_on_signal_chosen) {
+			if (active_signals.a.text != new_active_signals.a.text) {
+				document.getElementById('epoch_sound').play()
+			}
+			else
+			if (this.state.group_mode &&
+				active_signals.b.text != new_active_signals.b.text) {
+					document.getElementById('epoch_sound').play()
+				}
+		}
+
 		// clear out
 		if (active_signals.a.user) {
 			delete signals[active_signals.a.user.uid]//.text = '';
@@ -211,10 +223,6 @@ var App = React.createClass({
 		}
 		if (active_signals.config.clear_signals_on_epoch) {
 			this.setState({signals: {}})
-		}
-		if (active_signals.config.sound_on_signal_chosen) {
-			var sound = document.getElementById('epoch_sound')
-			sound.play()
 		}
 
 		// TODO BUG BUG
