@@ -10,7 +10,8 @@
     "comp_app": "browserify ./client/app.jsx -t babelify -g uglifyify  | uglifyjs -c > ./public/js/app.js",
     "comp_admin": "browserify ./client/admin.jsx  -t babelify -g uglifyify  | uglifyjs -c > ./public/js/admin.js",
     "comp_stage": "browserify ./client/stage.jsx -t babelify -g uglifyify  | uglifyjs -c > ./public/js/stage.js",
-    "comp": "npm run comp_app && npm run comp_admin && npm run comp_stage"
+    "comp": "npm run comp_app && npm run comp_admin && npm run comp_stage",
+    "build": "npm run build_app && npm run build_admin && npm run build_stage"
   },
   "dependencies": {
     "express": "^4.14.0",

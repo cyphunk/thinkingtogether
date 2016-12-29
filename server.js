@@ -242,6 +242,7 @@ var epoch = (function () {
 		Object.keys(sigs).map((key) => {
 			var vote_count = Object.keys(vts).filter(function(voter){
 							 return vts[voter] == key; }).length;
+			//if (config.epoch.require_min_votes && vote_count <= config.epoch.require_min_votes) return;
 			if (!group_mode) {
 				if (vote_count > highest_a.count) {
 					highest_a = {count: vote_count, uid: key}
@@ -283,6 +284,12 @@ var epoch = (function () {
 				votes.free(highest_a.uid)
 			}
 		}
+		// mix in the flag that determines if clients should delete votes
+		// why? because epoch:admin changes do not broadcast to clients. yeah, this is getting messy
+		if (config.epoch.clear_votes_on_epoch) {
+			votes.reset()
+		}
+		active_signals.config = {clear_votes_on_epoch: config.epoch.clear_votes_on_epoch}
 		debug_log('epoch._set_active_signal - active', active_signals);
 		//////////////////////////////////////////////
 		io.emit('epoch:active_signals', active_signals)
@@ -498,6 +505,10 @@ var socket = function (socket) {
 		else
 		if (data.command.method == 'set_config') {
 			config = data.command.value
+			socket.broadcast.emit('admin:command', data.command)
+		}
+		else
+		if (data.command.method == 'broadcast_message') {
 			socket.broadcast.emit('admin:command', data.command)
 		}
 		else

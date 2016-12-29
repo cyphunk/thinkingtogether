@@ -13,8 +13,7 @@ var App = React.createClass({
 		return {
 			group_mode: false,
 			password: localStorage.password ? localStorage.password : '',
-			epoch: config.epoch,
-			config: config
+			config: config // should change on init
 
 		};
 	},
@@ -70,6 +69,18 @@ var App = React.createClass({
             password: password,
             command: {
                 method: 'reset_session',
+            }
+        });
+    },
+	handle_broadcast_message(){
+        // var password = location.hash.slice(location.hash.indexOf('#')+1);
+        console.log("App.handle_broadcast_message()");
+        var {password} = this.state;
+        socket.emit('admin:command', {
+            password: password,
+            command: {
+                method: 'broadcast_message',
+				value: this.message_to_broadcast.value
             }
         });
     },
@@ -130,12 +141,18 @@ var App = React.createClass({
 		config.epoch.seed_length = parseFloat(this.seed_length.value);
 		config.epoch.pause_length = parseFloat(this.pause_length.value);
 		config.epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
+		config.epoch.clear_votes_on_epoch = this.clear_votes_on_epoch.checked
 		this.setState({ config });
 		socket.emit('admin:epoch', {password: password, epoch: config.epoch});
 	},
 	handle_epoch_bang(e) {
 		console.log('App.handle_epoch_bang');
 		socket.emit('admin:epoch', {password: this.state.password, epoch: {start: true}} );
+	},
+	handle_new_client_open(e){
+		console.log('App.handle_new_client_open')
+		var new_id = '#1111#'+( Math.floor(Math.random()*1000)+200 )
+		window.open('/'+new_id)
 	},
 	render() {
 		return (
@@ -153,6 +170,13 @@ var App = React.createClass({
 				</tr><tr>
 					<td><button onClick={this.toggle_group_mode}>toggle</button></td>
 					<td><span>group mode (is now {this.state.group_mode ? 'ON' : 'OFF'})</span></td>
+				</tr><tr>
+					<td><button onClick={this.handle_broadcast_message}>Broadcast</button></td>
+					<td><input
+	                    type="text"
+	                    placeholder="Message to broadcast"
+						ref={(i) => this.message_to_broadcast = i}
+	                    size="30"/></td>
 				</tr><tr>
 					<td><button onClick={this.reset_session}>Reset</button></td>
 					<td><span>Restart the entire show</span></td>
@@ -193,11 +217,19 @@ var App = React.createClass({
 										 ref={(i) => this.start_new_epoch_after_pause = i}
 									     onChange={this.handle_epoch_submit} /></td>
 								  <td><span>Start next epoch directly after pause ends</span></td>
+						  </tr><tr>
+								  <td><input type="checkbox"
+								  		 defaultChecked={this.state.config.epoch.clear_votes_on_epoch}
+										 ref={(i) => this.clear_votes_on_epoch = i}
+									     onChange={this.handle_epoch_submit} /></td>
+								  <td><span>Clear votes on each epoch</span></td>
 							</tr><tr>
 								  <td></td><td><button onClick={this.handle_epoch_bang}>Start Epoch</button></td>
 						  </tr><tr>
 								  <td></td><td><button onClick={this.active_signals_clear}>Clear active signals</button>
 								  </td>
+						  </tr><tr>
+								  <td></td><td><button onClick={this.handle_new_client_open}>Open extra client</button></td>
 							</tr>
 			</tbody></table>
 			<div id='advanced_toggle'>

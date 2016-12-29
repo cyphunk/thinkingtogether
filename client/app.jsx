@@ -17,6 +17,8 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 
 var config = require('../config.js')
 
+var broadcast_message_timer = null
+
 function debug_log() {
     if (config.debug)
         console.log.apply(this, arguments)
@@ -557,6 +559,18 @@ var App = React.createClass({
         if (command.method == 'reload_page') {
             window.location.reload(false);
         }
+        else
+        if (command.method == 'broadcast_message') {
+            var message = command.value
+            if (broadcast_message_timer)
+                window.clearTimeout(broadcast_message_timer)
+            var elem = document.getElementById('broadcast_message')
+            elem.innerHTML = message;
+            elem.style.display = 'block'
+            broadcast_message_timer = window.setTimeout(function(){
+                document.getElementById('broadcast_message').style.display='none'
+            }, 7000)
+        }
     },
     signal_order_loop() {
         debug_log('App.signal_order_loop()')
@@ -629,6 +643,10 @@ var App = React.createClass({
                 }
             }
         }
+        // shall we delete votes before next epoch
+        if (active_signals.config.clear_votes_on_epoch) {
+            this.setState({votes: {}})
+        }
     },
     on_tab_select (selected_tab,last) {
         var {user} = this.state
@@ -682,6 +700,7 @@ var App = React.createClass({
                             group_mode={this.state.group_mode} />
                     </TabPanel>
                 </Tabs>
+                <div id="broadcast_message" style={{display: "none"}}></div>
 			</div>
 		);
 	}

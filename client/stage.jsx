@@ -199,6 +199,11 @@ var App = React.createClass({
 			}
 			this.setState({signals, votes})
 		}
+		// clear votes?
+		// shall we delete votes before next epoch
+		if (active_signals.config.clear_votes_on_epoch) {
+			this.setState({votes: {}})
+		}
 
 		// TODO BUG BUG
 		// This could cause serious issues if there is more than one /stage up
