@@ -361,8 +361,12 @@ var App = React.createClass({
 			var groupAClass="signals group_a"
 			var groupBClass="signals group_b"
 			if (this.state.stage.group_side_by_side) {
-				groupAClass="signals group_a float_left"
-				groupBClass="signals group_b float_right"
+				groupAClass+=" float_left"
+				groupBClass+=" float_right"
+			}
+			if (this.state.stage.show_in_chat_bubbles) {
+				groupAClass+=" chat_bubble"
+				groupBClass+=" chat_bubble"
 			}
 
             return (

@@ -187,6 +187,8 @@ body.signals_group_b {
     text-align: center;
     background-color: #333;
     transition: display 0.5s ease-in-out;
+    align-items: center;
+    padding: 0.2em;
 }
 
 /*https://facebook.github.io/react/docs/animation.html*/

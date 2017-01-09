@@ -566,7 +566,7 @@ var App = React.createClass({
                 window.clearTimeout(broadcast_message_timer)
             var elem = document.getElementById('broadcast_message')
             elem.innerHTML = message;
-            elem.style.display = 'block'
+            elem.style.display = 'flex'
             broadcast_message_timer = window.setTimeout(function(){
                 document.getElementById('broadcast_message').style.display='none'
             }, 7000)
@@ -644,6 +644,7 @@ var App = React.createClass({
             }
         }
         // shall we delete votes before next epoch
+        // Only clear votes if the signal for this users group changed actually
         if (active_signals.config.clear_votes_on_epoch) {
             this.setState({votes: {}})
         }

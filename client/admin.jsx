@@ -110,6 +110,13 @@ var App = React.createClass({
         this.setState({config});
 		socket.emit('admin:stage', {password: password, stage: config.stage})
     },
+	stage_toggle_chat_bubbles(){
+        console.log("App.stage_toggle_chat_bubbles()");
+		var {config, password} = this.state;
+        config.stage.show_in_chat_bubbles = !config.stage.show_in_chat_bubbles;
+        this.setState({config});
+		socket.emit('admin:stage', {password: password, stage: config.stage})
+    },
 	stage_font_plus(){
         console.log("App.stage_font_plus()");
 		var {password} = this.state;
@@ -191,6 +198,9 @@ var App = React.createClass({
 				</tr><tr>
 					<td><button onClick={this.stage_toggle_side_by_side}>toggle</button></td>
 					<td><span>show groups side by side (is now {this.state.config.stage.group_side_by_side ? 'ON' : 'OFF'})</span></td>
+				</tr><tr>
+					<td><button onClick={this.stage_toggle_chat_bubbles}>toggle</button></td>
+					<td><span>show groups in chat bubbles (is now {this.state.config.stage.show_in_chat_bubbles ? 'ON' : 'OFF'})</span></td>
 				</tr><tr>
 					<td></td><th><span>Epoch</span></th>
 				</tr><tr>
