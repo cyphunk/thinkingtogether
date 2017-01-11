@@ -235,11 +235,17 @@ border-color: transparent transparent transparent #99f;
   transition: opacity .5s ease-in;
 }*/
 
+
 .react-progress-bar{
     height: 10px;
 }
 .react-progress-bar svg {
     height: 10px;
+}
+
+.chat_bubble .react-progress-bar {
+    position: relative;
+    top: 40px;
 }
 
 
