@@ -8,7 +8,12 @@ body {
     margin: 0;
     padding: 0;
 }
-
+table {
+_width: 100%
+}
+h3 {
+    padding: 0 5%;
+}
 a {
     color: inherit;
     text-decoration: none;
@@ -17,6 +22,13 @@ a {
     font-size: 1.5em;
     /*position: fixed;*/
 }
+.react-tabs [role="tablist"] {
+/*extend border on bottom*/
+border-bottom: 2px solid #fff;
+width: 100%;
+margin-left: -50%;
+padding-left: 50%;
+}
 input, textarea {
     background-color: rgba(0, 0, 0, 0.5);
     border: 0;
@@ -24,21 +36,34 @@ input, textarea {
     font-family: inherit;
     color: inherit;
     padding: 0.4em;
-    margin: 0.6em 0em;
+    margin: 0.6em 0em 0em 0em;
     width: 95%;
+}
+.submit_button {
+    margin: 0em 0em 0.6em 0em;
+}
+.writer_table td:nth-child(1) span {
+    display:block;
+    padding: 0.3em 0 0 0.5em;
+}
+.writer_table td:nth-child(1) {
+    vertical-align: top;
+}
+.writer_table td:nth-child(2) {
+    /*text-align: right;*/
 }
 span, a, button {
     margin: 0 0.2em 0 0;
 }
 .first_container {
     padding: 10px 2em;
-    padding-bottom: 140%; /*help group color extend full screen*/
+    _padding-bottom: 140%; /*help group color extend full screen*/
 }
 @media screen and (max-width: 500px) {
 /* applies only if the screen is narrower than 500px */
   .first_container {
     padding: 10px 1em;
-    padding-bottom: 140%;
+    _padding-bottom: 140%;
   }
 }
 
@@ -52,6 +77,8 @@ span, a, button {
 .signal {
     padding: 0.2em 0.2em 0.3em 0.3em;
     cursor: pointer;
+    /* dirty way to deal with render bug whereby many singals are written over top of each other*/
+    background-color: #333;
 }
 button.vote_button {
     background: url('/img/like_white_sm_26.png') no-repeat 0px center;
@@ -138,13 +165,33 @@ a.vote_button _img {
 .signals .myVote {
     background-color: rgba(33,102,33,0.8);
 }
-.signals_group_a {
+._signals_group_a
+ {
     background-color: rgba(0,0,102,0.5);
 }
-.signals_group_b {
+body.signals_group_a {
+    background-color: #226;
+}
+._signals_group_b {
     background-color: rgba(102,0,0,0.5);
 }
+body.signals_group_b {
+    background-color: #622;
+}
 
+#broadcast_message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 3em;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color: #333;
+    transition: display 0.5s ease-in-out;
+    align-items: center;
+    padding: 0.2em;
+}
 
 /*https://facebook.github.io/react/docs/animation.html*/
 /*.example-enter {

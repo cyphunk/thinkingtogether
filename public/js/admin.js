@@ -1,6 +1,8 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+// set has to turn on some debug features
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 var _react = require('react');
@@ -24,9 +26,9 @@ var App = _react2['default'].createClass({
 		return {
 			group_mode: false,
 			password: localStorage.password ? localStorage.password : '',
-			stage: _config2['default'].stage,
-			epoch: _config2['default'].epoch
-
+			config: _config2['default'], // should change on init
+			message_to_stage: '',
+			stage_messages: ['Select…', 'A', 'B', 'C']
 		};
 	},
 	componentDidMount: function componentDidMount() {
@@ -40,16 +42,16 @@ var App = _react2['default'].createClass({
 	_initialize: function _initialize(data) {
 		console.log('App._initialize() - data', data);
 		var group_mode = data.group_mode;
+		var config = data.config;
 
-		this.setState({ group_mode: group_mode });
+		this.setState({ group_mode: group_mode, config: config });
 	},
 	_error: function _error(data) {
 		console.log("App._error() - message", data);
 		alert("server error:\n" + data.message);
 	},
 	toggle_group_mode: function toggle_group_mode() {
-		// var password = location.hash.slice(location.hash.indexOf('#')+1);
-		console.log("App.toggle_group_mode() - password", password);
+		console.log("App.toggle_group_mode()");
 		var _state = this.state;
 		var group_mode = _state.group_mode;
 		var password = _state.password;
@@ -58,52 +60,196 @@ var App = _react2['default'].createClass({
 		socket.emit('admin:command', {
 			password: password,
 			command: {
-				method: 'setState',
+				method: 'set_state',
 				state: 'group_mode',
 				value: group_mode
 			}
 		});
 		this.setState({ group_mode: group_mode });
 	},
+	toggle_debug_mode: function toggle_debug_mode() {
+		console.log("App.toggle_debug_mode()");
+		var _state2 = this.state;
+		var config = _state2.config;
+		var password = _state2.password;
+
+		config.debug = !config.debug;
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'set_config',
+				value: config
+			}
+		});
+		this.setState({ config: config });
+	},
+	toggle_voter_vote: function toggle_voter_vote() {
+		console.log("App.toggle_voter_vote()");
+		var _state3 = this.state;
+		var config = _state3.config;
+		var password = _state3.password;
+
+		config.voter.enabled = !config.voter.enabled;
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'set_config',
+				value: config
+			}
+		});
+		this.setState({ config: config });
+	},
+	reset_session: function reset_session() {
+		// var password = location.hash.slice(location.hash.indexOf('#')+1);
+		console.log("App.reset_session()");
+		var password = this.state.password;
+
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'reset_session'
+			}
+		});
+	},
+	handle_broadcast_message: function handle_broadcast_message() {
+		// var password = location.hash.slice(location.hash.indexOf('#')+1);
+		console.log("App.handle_broadcast_message()");
+		var password = this.state.password;
+
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'broadcast_message',
+				value: this.message_to_broadcast.value
+			}
+		});
+	},
+	handle_stage_message: function handle_stage_message() {
+		// var password = location.hash.slice(location.hash.indexOf('#')+1);
+		console.log("App.handle_stage_message()");
+		var password = this.state.password;
+
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'stage_message',
+				value: this.message_to_stage.value
+			}
+		});
+	},
+	handle_stage_message_change: function handle_stage_message_change(e) {
+		this.setState({ message_to_stage: e.target.value });
+	},
+	handle_stage_messages_create_item: function handle_stage_messages_create_item(item, key) {
+		return _react2['default'].createElement(
+			'option',
+			{ key: key },
+			item
+		);
+	},
 	change_password: function change_password(e) {
 		localStorage.password = e.target.value;
 		this.setState({ password: e.target.value });
 	},
-	change_opacity: function change_opacity(e) {
-		var _state2 = this.state;
-		var stage = _state2.stage;
-		var password = _state2.password;
+	stage_change_opacity: function stage_change_opacity(e) {
+		var _state4 = this.state;
+		var config = _state4.config;
+		var password = _state4.password;
 
-		stage.opacity_step = e.target.value;
-		this.setState({ stage: stage });
+		config.stage.opacity_step = e.target.value;
+		this.setState({ config: config });
 		if (!isNaN(e.target.value)) {
-			socket.emit('admin:stage', { password: password, stage: stage });
+			socket.emit('admin:stage', { password: password, stage: config.stage });
 		}
 	},
-	handle_epoch_submit: function handle_epoch_submit(e) {
-		console.log('App.handle_epoch_submit', this.wait_for_bang_to_start.checked);
-		e.preventDefault();
-		var _state3 = this.state;
-		var epoch = _state3.epoch;
-		var password = _state3.password;
+	stage_toggle_show_signal_activity: function stage_toggle_show_signal_activity() {
+		console.log("App.stage_toggle_show_signal_activity()");
+		var _state5 = this.state;
+		var config = _state5.config;
+		var password = _state5.password;
 
-		epoch.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
-		epoch.seed_length = parseFloat(this.seed_length.value);
-		epoch.pause_length = parseFloat(this.pause_length.value);
-		epoch.pause_forced = this.pause_forced.checked;
-		// epoch.pause_show_progress = this.pause_show_progress.checked;
-		epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
-		this.setState({ epoch: epoch });
-		socket.emit('admin:epoch', { password: password, epoch: epoch });
+		config.stage.show_signal_activity = !config.stage.show_signal_activity;
+		this.setState({ config: config });
+		socket.emit('admin:stage', { password: password, stage: config.stage });
+	},
+	stage_toggle_side_by_side: function stage_toggle_side_by_side() {
+		console.log("App.stage_toggle_side_by_side()");
+		var _state6 = this.state;
+		var config = _state6.config;
+		var password = _state6.password;
+
+		config.stage.group_side_by_side = !config.stage.group_side_by_side;
+		this.setState({ config: config });
+		socket.emit('admin:stage', { password: password, stage: config.stage });
+	},
+	stage_toggle_chat_bubbles: function stage_toggle_chat_bubbles() {
+		console.log("App.stage_toggle_chat_bubbles()");
+		var _state7 = this.state;
+		var config = _state7.config;
+		var password = _state7.password;
+
+		config.stage.show_in_chat_bubbles = !config.stage.show_in_chat_bubbles;
+		this.setState({ config: config });
+		socket.emit('admin:stage', { password: password, stage: config.stage });
+	},
+	stage_font_plus: function stage_font_plus() {
+		console.log("App.stage_font_plus()");
+		var password = this.state.password;
+
+		socket.emit('admin:stagestyle', { password: password, command: 'font plus' });
+	},
+	stage_font_minus: function stage_font_minus() {
+		console.log("App.stage_font_minud()");
+		var password = this.state.password;
+
+		socket.emit('admin:stagestyle', { password: password, command: 'font minus' });
+	},
+	stage_padding_plus: function stage_padding_plus() {
+		console.log("App.stage_padding_plus()");
+		var password = this.state.password;
+
+		socket.emit('admin:stagestyle', { password: password, command: 'padding plus' });
+	},
+	stage_padding_minus: function stage_padding_minus() {
+		console.log("App.stage_padding_minud()");
+		var password = this.state.password;
+
+		socket.emit('admin:stagestyle', { password: password, command: 'padding minus' });
+	},
+	active_signals_clear: function active_signals_clear() {
+		var password = this.state.password;
+
+		socket.emit('admin:epoch', { password: password, active_signals_clear: true });
+	},
+	handle_epoch_submit: function handle_epoch_submit(e) {
+		console.log('App.handle_epoch_submit');
+		var _state8 = this.state;
+		var config = _state8.config;
+		var password = _state8.password;
+
+		config.epoch.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
+		config.epoch.seed_length = parseFloat(this.seed_length.value);
+		config.epoch.pause_length = parseFloat(this.pause_length.value);
+		config.epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
+		config.epoch.clear_votes_on_epoch = this.clear_votes_on_epoch.checked;
+		config.epoch.clear_signals_on_epoch = this.clear_signals_on_epoch.checked;
+		config.epoch.require_min_votes = parseFloat(this.require_min_votes.value);
+		config.epoch.sound_on_signal_chosen = this.sound_on_signal_chosen.checked;
+		this.setState({ config: config });
+		socket.emit('admin:epoch', { password: password, epoch: config.epoch });
 	},
 	handle_epoch_bang: function handle_epoch_bang(e) {
 		console.log('App.handle_epoch_bang');
 		socket.emit('admin:epoch', { password: this.state.password, epoch: { start: true } });
 	},
+	handle_new_client_open: function handle_new_client_open(e) {
+		console.log('App.handle_new_client_open');
+		var new_id = '#1111#' + (Math.floor(Math.random() * 1000) + 200);
+		window.open('/' + new_id);
+	},
 	render: function render() {
 		var _this = this;
 
-		var current_password = location.hash.slice(location.hash.indexOf('#') + 1);
 		return _react2['default'].createElement(
 			'div',
 			null,
@@ -134,7 +280,6 @@ var App = _react2['default'].createClass({
 							)
 						)
 					),
-					_react2['default'].createElement('tr', null),
 					_react2['default'].createElement(
 						'tr',
 						null,
@@ -144,7 +289,7 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.toggle_group_mode },
-								this.state.group_mode ? 'true' : 'false'
+								'toggle'
 							)
 						),
 						_react2['default'].createElement(
@@ -153,7 +298,118 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'span',
 								null,
-								'toggle group mode'
+								'group mode (is now ',
+								this.state.group_mode ? 'ON' : 'OFF',
+								')'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.handle_broadcast_message },
+								'Broadcast'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', {
+								type: 'text',
+								placeholder: 'Message to broadcast on phones',
+								ref: function (i) {
+									return _this.message_to_broadcast = i;
+								},
+								size: '30' })
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.handle_stage_message },
+								'To Stage'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('textarea', {
+								type: 'text',
+								placeholder: 'Message to force on stage',
+								ref: function (i) {
+									return _this.message_to_stage = i;
+								},
+								value: this.state.message_to_stage,
+								onChange: this.handle_stage_message_change,
+								cols: '40', rows: '8' }),
+							_react2['default'].createElement('br', null),
+							_react2['default'].createElement(
+								'select',
+								{ onChange: this.handle_stage_message_change,
+									size: '3' },
+								this.state.stage_messages.map(this.handle_stage_messages_create_item)
+							),
+							_react2['default'].createElement('br', null),
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.handle_stage_messages_download },
+								'update list'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.toggle_voter_vote },
+								'toggle'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'vote mode (is now ',
+								this.state.config.voter.enabled ? 'ON' : 'OFF',
+								')'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.reset_session },
+								'Reset'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Restart the entire show'
 							)
 						)
 					),
@@ -171,16 +427,17 @@ var App = _react2['default'].createClass({
 							)
 						)
 					),
-					_react2['default'].createElement('tr', null),
 					_react2['default'].createElement(
 						'tr',
 						null,
 						_react2['default'].createElement(
 							'td',
 							null,
-							_react2['default'].createElement('input', { type: 'text',
-								value: this.state.stage.opacity_step,
-								onChange: this.change_opacity, size: '3' })
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.stage_toggle_show_signal_activity },
+								'toggle'
+							)
 						),
 						_react2['default'].createElement(
 							'td',
@@ -188,7 +445,57 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'span',
 								null,
-								'Stage opacity steps'
+								'show signal activity (is now ',
+								this.state.config.stage.show_signal_activity ? 'ON' : 'OFF',
+								')'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.stage_toggle_side_by_side },
+								'toggle'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'show groups side by side (is now ',
+								this.state.config.stage.group_side_by_side ? 'ON' : 'OFF',
+								')'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.stage_toggle_chat_bubbles },
+								'toggle'
+							)
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'show groups in chat bubbles (is now ',
+								this.state.config.stage.show_in_chat_bubbles ? 'ON' : 'OFF',
+								')'
 							)
 						)
 					),
@@ -213,7 +520,7 @@ var App = _react2['default'].createClass({
 							'td',
 							null,
 							_react2['default'].createElement('input', { type: 'checkbox',
-								defaultChecked: this.state.epoch.wait_for_bang_to_start,
+								defaultChecked: this.state.config.epoch.wait_for_bang_to_start,
 								ref: function (i) {
 									return _this.wait_for_bang_to_start = i;
 								},
@@ -235,11 +542,11 @@ var App = _react2['default'].createClass({
 						_react2['default'].createElement(
 							'td',
 							null,
-							_react2['default'].createElement('input', { type: 'text',
-								defaultValue: this.state.epoch.seed_length,
+							_react2['default'].createElement('input', { type: 'text', size: '4',
+								defaultValue: this.state.config.epoch.seed_length,
 								ref: function (i) {
 									return _this.seed_length = i;
-								}, size: '4',
+								},
 								onBlur: this.handle_epoch_submit })
 						),
 						_react2['default'].createElement(
@@ -258,11 +565,11 @@ var App = _react2['default'].createClass({
 						_react2['default'].createElement(
 							'td',
 							null,
-							_react2['default'].createElement('input', { type: 'text',
-								defaultValue: this.state.epoch.pause_length,
+							_react2['default'].createElement('input', { type: 'text', size: '4',
+								defaultValue: this.state.config.epoch.pause_length,
 								ref: function (i) {
 									return _this.pause_length = i;
-								}, size: '4',
+								},
 								onBlur: this.handle_epoch_submit
 							})
 						),
@@ -282,12 +589,13 @@ var App = _react2['default'].createClass({
 						_react2['default'].createElement(
 							'td',
 							null,
-							_react2['default'].createElement('input', { type: 'checkbox',
-								defaultValue: this.state.epoch.pause_forced,
+							_react2['default'].createElement('input', { type: 'text', size: '4',
+								defaultValue: this.state.config.epoch.require_min_votes,
 								ref: function (i) {
-									return _this.pause_forced = i;
+									return _this.require_min_votes = i;
 								},
-								onChange: this.handle_epoch_submit })
+								onBlur: this.handle_epoch_submit
+							})
 						),
 						_react2['default'].createElement(
 							'td',
@@ -295,7 +603,7 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'span',
 								null,
-								'Pause client UI off during pause'
+								'Signal vote threshold'
 							)
 						)
 					),
@@ -306,7 +614,7 @@ var App = _react2['default'].createClass({
 							'td',
 							null,
 							_react2['default'].createElement('input', { type: 'checkbox',
-								defaultValue: this.state.epoch.start_new_epoch_after_pause,
+								defaultChecked: this.state.config.epoch.start_new_epoch_after_pause,
 								ref: function (i) {
 									return _this.start_new_epoch_after_pause = i;
 								},
@@ -325,6 +633,75 @@ var App = _react2['default'].createClass({
 					_react2['default'].createElement(
 						'tr',
 						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', { type: 'checkbox',
+								defaultChecked: this.state.config.epoch.sound_on_signal_chosen,
+								ref: function (i) {
+									return _this.sound_on_signal_chosen = i;
+								},
+								onChange: this.handle_epoch_submit })
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Beep on signal chosen'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', { type: 'checkbox',
+								defaultChecked: this.state.config.epoch.clear_votes_on_epoch,
+								ref: function (i) {
+									return _this.clear_votes_on_epoch = i;
+								},
+								onChange: this.handle_epoch_submit })
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Clear votes on each epoch'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement('input', { type: 'checkbox',
+								defaultChecked: this.state.config.epoch.clear_signals_on_epoch,
+								ref: function (i) {
+									return _this.clear_signals_on_epoch = i;
+								},
+								onChange: this.handle_epoch_submit })
+						),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'span',
+								null,
+								'Clear signals on each epoch'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
 						_react2['default'].createElement('td', null),
 						_react2['default'].createElement(
 							'td',
@@ -332,22 +709,116 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.handle_epoch_bang },
-								'Start'
+								'Start Epoch'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement('td', null),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.active_signals_clear },
+								'Clear active signals'
+							)
+						)
+					),
+					_react2['default'].createElement(
+						'tr',
+						null,
+						_react2['default'].createElement('td', null),
+						_react2['default'].createElement(
+							'td',
+							null,
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.handle_new_client_open },
+								'Open extra client'
 							)
 						)
 					)
 				)
+			),
+			_react2['default'].createElement(
+				'div',
+				{ id: 'advanced_toggle' },
+				_react2['default'].createElement(
+					'span',
+					{ onClick: function (e) {
+							document.getElementById('advanced').style.display = 'block';
+						} },
+					'+'
+				),
+				_react2['default'].createElement(
+					'span',
+					{ onClick: function (e) {
+							document.getElementById('advanced').style.display = 'none';
+						} },
+					'-'
+				)
+			),
+			_react2['default'].createElement(
+				'div',
+				{ id: 'advanced' },
+				'Advanced options:',
+				_react2['default'].createElement('br', null),
+				_react2['default'].createElement(
+					'button',
+					{ onClick: this.toggle_debug_mode },
+					'toggle'
+				),
+				_react2['default'].createElement(
+					'span',
+					null,
+					'debug mode (is now ',
+					this.state.config.debug ? 'ON' : 'OFF',
+					')'
+				),
+				_react2['default'].createElement('br', null),
+				_react2['default'].createElement(
+					'button',
+					{ onClick: this.stage_font_plus },
+					'+'
+				),
+				_react2['default'].createElement(
+					'button',
+					{ onClick: this.stage_font_minus },
+					'-'
+				),
+				_react2['default'].createElement(
+					'span',
+					null,
+					'font'
+				),
+				_react2['default'].createElement('br', null),
+				_react2['default'].createElement(
+					'button',
+					{ onClick: this.stage_padding_plus },
+					'+'
+				),
+				_react2['default'].createElement(
+					'button',
+					{ onClick: this.stage_padding_minus },
+					'-'
+				),
+				_react2['default'].createElement(
+					'span',
+					null,
+					'padding'
+				),
+				_react2['default'].createElement('br', null)
 			)
 		);
 	}
 });
 _reactDom2['default'].render(_react2['default'].createElement(App, null), document.getElementById('app'));
-/* </tr><tr>
-  <td><input type="checkbox"
-		 defaultValue={this.state.epoch.pause_show_progress}
-		 ref={(i) => this.pause_show_progress = i}
-	     onChange={this.handle_epoch_submit} /></td>
-  <td><span>Pause show progess</span></td> */
+/* <option value="select">Select</option>
+              <option value="Java Java">Java Java</option>
+              <option value="C++">C++</option> */
 
 },{"../config":2,"react":179,"react-dom":28}],2:[function(require,module,exports){
 'use strict';
@@ -359,36 +830,53 @@ config.voter = {};
 config.stage = {};
 config.epoch = {};
 config.admin = {};
+config.debug = false; // set to true to turn on client debuggin
 
-config.server.port = 3000;
+config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
-// set to cause vote to update
-// config.server.vote_updates_signals = true;
+config.server.load_data_files = false; // load .data/*.json on start?
 
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
 config.server.reject_empty_signal = false;
+
+config.default_tab = 0; // 0=BRUSSELS. change to determine default tab 0 = writer, 1 = voter
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
-config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
-config.writer.send_live_input = false;
+config.writer.send_live_input = false; // clients send as they type?
 config.writer.submit_on_linebreak = true;
 config.writer.submit_on_period = true;
 config.writer.max_chars = 140;
+config.writer.show_submit_button = true; // true=BRUSSELS
+
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.stage.opacity_step = 0.2; // dec opacity on signal list by this much with Signal on top starting at 1.0
-config.stage.show_signal_activity = true;
+config.voter.show_n_signals = 5; //
+config.voter.reorder_wait_time = 7; //
+config.voter.enabled = false; // false=BRUSSELS. if false the vote tap isnt shown
+
+config.stage.show_signal_activity = true; // false means only the current signal is shown
+config.stage.show_vote_count = false;
+config.stage.show_n_signals = 10; // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
+config.stage.group_side_by_side = true; // adds float left css
+config.stage.show_in_chat_bubbles = false; // adds chatbubble css
+
 config.epoch.wait_for_bang_to_start = true; // false then just go
-config.epoch.seed_length = 30; // time to vote
-config.epoch.pause_length = 15; // time before voter faded in
+config.epoch.seed_length = 10; // time to vote
+config.epoch.pause_length = 2; // time before voter faded in
 config.epoch.pause_forced = false; // when true client interface fade out all but count down
-// config.epoch.pause_show_progress = true; // show progress cont down
-config.epoch.start_new_epoch_after_pause = true; // if false forces admin bang.
-config.server.remove_signal_after_selected = true;
+// config.epoch.pause_show_progress = true  // show progress cont down
+config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
+config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
+config.epoch.delete_winner = true;
+config.epoch.require_min_votes = 0; // 0=BRUSSELS. set to 0 for no limit
+config.epoch.clear_votes_on_epoch = true;
+config.epoch.clear_signals_on_epoch = true;
+config.epoch.sound_on_signal_chosen = true;
+
 module.exports = config;
 
 },{}],3:[function(require,module,exports){

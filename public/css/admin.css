@@ -8,6 +8,7 @@ body {
     margin: 4em;
     padding: 0;
 }
+td { vertical-align: top; }
 td:nth-child(1) {
     text-align: right;
 }
@@ -16,22 +17,28 @@ td:nth-child(2) {
 }
 * {
 }
-span, input, button {
+input, textarea, select, button {
     margin: 0.1em 0.4em;
 }
-input, button {
+input, button, select {
     font-size: inherit;
     font-family: inherit;
 }
-input {
+select {
+    /*max-width: 300px;*/
+}
+button:hover {
+    background-color: #fff;
+}
+input, select, textarea {
     color: inherit;
     background-color: rgba(66, 66, 66, 0.5);
     padding: 0.4em;
     border: 0;
 }
-table input {
+/*table input {
     text-align: right;
-}
+}*/
 table th {
     text-align: left;
 }
@@ -39,4 +46,19 @@ button {
     /*border-style:ridge;*/
     border-radius: 5px;
     border-width: 4px;
+}
+#advanced {
+    padding-top: 5em;
+    display: none;
+    font-size: 0.8em;
+}
+#advanced_toggle {
+    opacity: 0.4;
+    left:0;
+    bottom:0;
+    position: fixed;
+    padding: 1em;
+}
+#advanced_toggle span {
+    padding: 0.2em;
 }

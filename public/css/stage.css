@@ -5,13 +5,17 @@ body {
     color: #eee;
     font-family: 'Roboto', sans-serif;
     font-size: 24pt;
-    margin: 4em;
+    margin: 1em 5%;
     padding: 0;
     cursor: none;
 }
 * {
     cursor: none;
 
+}
+#app {
+    padding-top: 2em;
+    transition: padding 0.6s ease-in-out, font-size 0.6s ease-in-out;
 }
 .first_container {
     padding: 10px 2em;
@@ -20,10 +24,31 @@ body {
 
 .user_name {
     font-size: 1em;
+    white-space: nowrap;
+
 }
 
 .signal {
     padding: 0.2em 0.2em 0.3em 0.3em;
+    color: #999;
+}
+.signal:nth-child(2) {
+    opacity: 0.7
+}
+.signal:nth-child(3) {
+    opacity: 0.5
+}
+.signal:nth-child(4) {
+    opacity: 0.3
+}
+.signal:nth-child(5) {
+    opacity: 0.2
+}
+.signal:nth-child(6) {
+    opacity: 0.1
+}
+.signal:nth-child(n+7) {
+    opacity: 0.0
 }
 .signal .user_name {
     font-size: 0.5em;
@@ -52,12 +77,20 @@ hr { display: none}
     margin: auto;
 }
 .group_a {
+    _float: left;
+    width: 100%;
+}
+.group_b {
+    width: 100%;
+    _float: right;
+}
+.float_left {
     float: left;
     width: 50%;
 }
-.group_b {
-    width: 50%;
+.float_right {
     float: right;
+    width: 50%;
 }
 /*.first_signal {
     border-bottom: 0.09em solid #fff;
@@ -81,46 +114,100 @@ hr { display: none}
 .first_signal .user_name {
 }
 
-/* progressbar
-http://jsfiddle.net/mjEDY/99/
-http://codepen.io/vn38minhtran/pen/QjaZrm
- */
-
-.react-progress-bar {
-    width: 118%;
-    height: 100%;
-    transition: all 400ms;
-    position: absolute;
-    top: 0; left: 0;
-}
-.react-progress-bar-percent {
-    /*width:100%;*/
-    /* set to 100% to background*/
-    height:6px;
-    background-color: #fff;
-    bottom: 0; left:0;
-    position: absolute;
-    z-index: -1;
-    transition: all 400ms;
-}
-.progress_bar {
-    position: relative;
-}
 .active_signal {
     border:1px solid black;
     color: grey;
     /*position: relative;*/
-
 }
 .active_signal {
     font-weight: bold;
 }
+.active_signal .signal_text {
+    font-size: 2em;
+}
 .group_a .active_signal {
     color: #99f;
 }
+.group_a.chat_bubble .active_signal {
+    color: #000;
+    background-color: #99f;
+    text-align: center;
+    /*talk-bubble*/
+    _margin: 40px;
+  display: inline-block;
+  position: relative;
+    _width: 200px;
+    _height: auto;
+
+    /*round*/
+    border-radius: 30px;
+      -webkit-border-radius: 30px;
+      -moz-border-radius: 30px;
+    /*.tri-right.left-in:after*/
+    margin-bottom:40px;
+}
+.group_a.chat_bubble .active_signal:after {
+content: ' ';
+position: absolute;
+width: 0;
+height: 0;
+left: 0px;
+right: auto;
+top: auto;
+bottom: -20px;
+border: 22px solid;
+border-color: transparent transparent transparent #99f;
+}
+
 .group_b .active_signal {
     color: #f99;
 }
+.group_a {
+    padding-bottom: 2em;
+    height: 50%;
+}
+
+.group_b.chat_bubble .active_signal {
+    background-color: #f99;
+    color: #000;
+
+    text-align: center;
+    /*talk-bubble*/
+    _margin: 40px;
+  display: inline-block;
+  position: relative;
+    _width: 200px;
+    _height: auto;
+
+    /*round*/
+    border-radius: 30px;
+      -webkit-border-radius: 30px;
+      -moz-border-radius: 30px;
+      margin-bottom:40px;
+}
+.group_b.chat_bubble .active_signal:after {
+    content: ' ';
+    position: absolute;
+    width: 0;
+    height: 0;
+  left: auto;
+    right: -20px;
+  _top: 38px;
+    _bottom: auto;
+    border: 12px solid;
+    border-color: transparent transparent #f99 #f99;
+    bottom: 18px;
+}
+/*sorry... seems nuts but was done to make chat bubble aligning on the right*/
+.group_b.chat_bubble.float_right .active_signal {
+    width: 100%
+}
+.group_b.chat_bubble .active_signal {
+    float: right;
+    width: auto;
+}
+/*tri-right round right-in*/
+
 /*https://facebook.github.io/react/docs/animation.html*/
 /*.example-enter {
   opacity: 0.01;
@@ -147,3 +234,268 @@ http://codepen.io/vn38minhtran/pen/QjaZrm
   opacity: 1;
   transition: opacity .5s ease-in;
 }*/
+
+
+.react-progress-bar{
+    height: 10px;
+}
+.react-progress-bar svg {
+    height: 10px;
+}
+
+.chat_bubble .react-progress-bar {
+    position: relative;
+    top: 40px;
+}
+
+
+/* talk-bubble tri-right left-in round */
+
+/* CSS talk bubble */
+.talk-bubble {
+	margin: 40px;
+  display: inline-block;
+  position: relative;
+	width: 200px;
+	height: auto;
+	background-color: lightyellow;
+    background-color: #99f;
+}
+.border{
+  border: 8px solid #666;
+}
+.round{
+  border-radius: 30px;
+	-webkit-border-radius: 30px;
+	-moz-border-radius: 30px;
+
+}
+
+/* Right triangle placed top left flush. */
+.tri-right.border.left-top:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: -40px;
+	right: auto;
+  top: -8px;
+	bottom: auto;
+	border: 32px solid;
+	border-color: #666 transparent transparent transparent;
+}
+.tri-right.left-top:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: -20px;
+	right: auto;
+  top: 0px;
+	bottom: auto;
+	border: 22px solid;
+	border-color: lightyellow transparent transparent transparent;
+}
+
+/* Right triangle, left side slightly down */
+.tri-right.border.left-in:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: -40px;
+	right: auto;
+  top: 30px;
+	bottom: auto;
+	border: 20px solid;
+	border-color: #666 #666 transparent transparent;
+}
+.tri-right.left-in:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: -20px;
+	right: auto;
+  top: 38px;
+	bottom: auto;
+	border: 12px solid;
+	border-color: #99f #99f transparent transparent;
+}
+
+/*Right triangle, placed bottom left side slightly in*/
+.tri-right.border.btm-left:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: -8px;
+  right: auto;
+  top: auto;
+	bottom: -40px;
+	border: 32px solid;
+	border-color: transparent transparent transparent #666;
+}
+.tri-right.btm-left:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: 0px;
+  right: auto;
+  top: auto;
+	bottom: -20px;
+	border: 22px solid;
+	border-color: transparent transparent transparent lightyellow;
+}
+
+/*Right triangle, placed bottom left side slightly in*/
+.tri-right.border.btm-left-in:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: 30px;
+  right: auto;
+  top: auto;
+	bottom: -40px;
+	border: 20px solid;
+	border-color: #666 transparent transparent #666;
+}
+.tri-right.btm-left-in:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+	left: 38px;
+  right: auto;
+  top: auto;
+	bottom: -20px;
+	border: 12px solid;
+	border-color: lightyellow transparent transparent lightyellow;
+}
+
+/*Right triangle, placed bottom right side slightly in*/
+.tri-right.border.btm-right-in:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: 30px;
+	bottom: -40px;
+	border: 20px solid;
+	border-color: #666 #666 transparent transparent;
+}
+.tri-right.btm-right-in:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: 38px;
+	bottom: -20px;
+	border: 12px solid;
+	border-color: lightyellow lightyellow transparent transparent;
+}
+/*
+	left: -8px;
+  right: auto;
+  top: auto;
+	bottom: -40px;
+	border: 32px solid;
+	border-color: transparent transparent transparent #666;
+	left: 0px;
+  right: auto;
+  top: auto;
+	bottom: -20px;
+	border: 22px solid;
+	border-color: transparent transparent transparent lightyellow;
+
+/*Right triangle, placed bottom right side slightly in*/
+.tri-right.border.btm-right:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: -8px;
+	bottom: -40px;
+	border: 20px solid;
+	border-color: #666 #666 transparent transparent;
+}
+.tri-right.btm-right:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: 0px;
+	bottom: -20px;
+	border: 12px solid;
+	border-color: lightyellow lightyellow transparent transparent;
+}
+
+/* Right triangle, right side slightly down*/
+.tri-right.border.right-in:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: -40px;
+  top: 30px;
+	bottom: auto;
+	border: 20px solid;
+	border-color: #666 transparent transparent #666;
+}
+.tri-right.right-in:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: -20px;
+  top: 38px;
+	bottom: auto;
+	border: 12px solid;
+	border-color: lightyellow transparent transparent lightyellow;
+}
+
+/* Right triangle placed top right flush. */
+.tri-right.border.right-top:before {
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: -40px;
+  top: -8px;
+	bottom: auto;
+	border: 32px solid;
+	border-color: #666 transparent transparent transparent;
+}
+.tri-right.right-top:after{
+	content: ' ';
+	position: absolute;
+	width: 0;
+	height: 0;
+  left: auto;
+	right: -20px;
+  top: 0px;
+	bottom: auto;
+	border: 20px solid;
+	border-color: lightyellow transparent transparent transparent;
+}
+
+/* talk bubble contents */
+.talktext{
+  padding: 1em;
+	text-align: left;
+  line-height: 1.5em;
+}
+.talktext p{
+  /* remove webkit p margins */
+  -webkit-margin-before: 0em;
+  -webkit-margin-after: 0em;
+}

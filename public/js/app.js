@@ -29,14 +29,58 @@ var _reactTextareaAutosize2 = _interopRequireDefault(_reactTextareaAutosize);
 
 var _reactTabs = require('react-tabs');
 
-var _config = require('../config');
+localStorage.debug = '';
 
-var _config2 = _interopRequireDefault(_config);
+var config = require('../config.js');
 
-// server corrals clients by ip but, for debugging send hash to allow
-// one host to have several clients
+var broadcast_message_timer = null;
 
-localStorage.debug = '';if (location.hash) var socket = io.connect({ query: 'hash=' + location.hash });else var socket = io.connect();
+function debug_log() {
+    if (config.debug) console.log.apply(this, arguments);
+}
+//
+// ordering the list a ghetto way for now. maybe better in the future with more time
+//
+/* ORDER:
+  your signal
+  your select
+  top#1
+  top#2 / this removed if s
+  neighbor
+  latest
+  random
+
+*/
+var actual_latest = null; // change on new epoch
+var current_selected = null; // need this. eg. select latest but after n seconds
+var current_top = null; // change every N time
+var current_neighbor = null; // change on new epoch
+var current_latest = null; // /use on timeout to set_latest latest changes. should still see selected
+var current_random = null;
+// these ony show up if the above overlap
+var current_second = null;
+var current_latest2 = null;
+var current_random2 = null;
+// call whenever a new signal comes in
+var signal_order_timer = null; // started on start and
+
+// if we have a previous uid send it. uid's are unique and only valid per session
+debug_log("localStorage.uid = ", localStorage.uid);
+var voter_tab_reenable = false; // a way for admin to have clients that allow voting regardless on config.voter.enable setting
+var using_hash_uid = false; // turn on with hash
+if (window.location.hash.length > 1) {
+    var hash = location.hash;
+    if (hash.indexOf('voter') >= 0) {
+        voter_tab_reenable = true;
+        hash = hash.replace('voter', '');
+    }
+    var socket = io.connect({ query: 'uid=' + hash.substr(1) });
+    using_hash_uid = true;
+} else if (localStorage.uid) {
+    var socket = io.connect({ query: 'uid=' + localStorage.uid });
+} else {
+    var socket = io.connect();
+}
 window.onhashchange = function () {
     window.location.reload();
 };
@@ -45,27 +89,27 @@ var Writer = _react2['default'].createClass({
     displayName: 'Writer',
 
     handle_submit: function handle_submit(e) {
-        console.log("Writer handle_submit");
+        debug_log("Writer handle_submit");
         e.preventDefault();
         socket.emit('send:signal', {
             user: this.props.user,
-            text: this.props.signal
+            text: this.props.signal //.replace(/\n|\./g,'')
         });
     },
     handle_change: function handle_change(e) {
-        console.log('Writer handle_change - match .', e.target.value.match(/\. *$/g));
-        if (e.target.value.length > _config2['default'].writer.max_chars + 3) return;
+        debug_log('Writer handle_change - match .', e.target.value.match(/\. *$/g));
+        if (e.target.value.length > config.writer.max_chars + 3) return;
         this.props.handle_writer_signal_field_changed(e.target.value);
         // the . match includes catch double space bar added periods from phones
-        if (_config2['default'].writer.submit_on_linebreak && e.target.value[e.target.value.length - 1] == "\n" || _config2['default'].writer.submit_on_period && e.target.value.match(/\. *$/g) !== null) {
-            console.log("Writer handle_change - submit");
+        if (config.writer.submit_on_linebreak && e.target.value[e.target.value.length - 1] == "\n" || config.writer.submit_on_period && e.target.value.match(/\. *$/g) !== null) {
+            debug_log("Writer handle_change - submit");
             socket.emit('send:signal', {
                 user: this.props.user,
-                text: e.target.value
+                text: e.target.value.replace(/\n|\./g, '')
             });
-        } else if (_config2['default'].writer.send_live_input) {
+        } else if (config.writer.send_live_input) {
             //TODO
-            console.log("Writer handle_change - to stage: " + e.target.value + ' code:' + e.keyCode);
+            debug_log("Writer handle_change - to stage: " + e.target.value + ' code:' + e.keyCode);
             socket.emit('send:signal', {
                 user: this.props.user,
                 text: e.target.value
@@ -74,24 +118,62 @@ var Writer = _react2['default'].createClass({
         //Supposedly pressing enter in text input calls the forms submit
         // so we do not need to call this.handle_submit on enter
     },
-
+    moveCaretAtEnd: function moveCaretAtEnd(e) {
+        var temp_value = e.target.value;
+        e.target.value = '';
+        e.target.value = temp_value;
+    },
     render: function render() {
-        var _this = this;
+        var _this2 = this;
 
-        console.log('text', this.props.signal);
+        debug_log('text', this.props.signal);
+        var submit_elem = null;
+        if (config.writer.show_submit_button) submit_elem = _react2['default'].createElement('input', { className: 'submit_button', type: 'submit', value: 'Submit' });
         return _react2['default'].createElement(
             'form',
             { onSubmit: this.handle_submit },
-            _react2['default'].createElement(_reactTextareaAutosize2['default'], {
-                type: 'text',
-                placeholder: "Propose signal <" + _config2['default'].writer.max_chars + " characters...",
-                ref: function (input) {
-                    return _this.signalInput = input;
-                },
-                onChange: this.handle_change,
-                value: this.props.signal,
-                autoFocus: 'true'
-            })
+            _react2['default'].createElement(
+                'table',
+                { className: 'writer_table' },
+                _react2['default'].createElement(
+                    'tr',
+                    null,
+                    _react2['default'].createElement(
+                        'td',
+                        { colSpan: '2' },
+                        _react2['default'].createElement(_reactTextareaAutosize2['default'], {
+                            type: 'text',
+                            placeholder: "Propose signal <" + config.writer.max_chars + " letters...",
+                            ref: function (input) {
+                                return _this2.signalInput = input;
+                            },
+                            onChange: this.handle_change,
+                            value: this.props.signal,
+                            autoFocus: 'true',
+                            onFocus: this.moveCaretAtEnd
+                        })
+                    )
+                ),
+                _react2['default'].createElement(
+                    'tr',
+                    null,
+                    _react2['default'].createElement(
+                        'td',
+                        null,
+                        _react2['default'].createElement(
+                            'span',
+                            { className: 'user_name' },
+                            'You are ',
+                            this.props.user.name
+                        )
+                    ),
+                    _react2['default'].createElement(
+                        'td',
+                        null,
+                        submit_elem
+                    )
+                )
+            )
         );
     }
 
@@ -100,8 +182,8 @@ var Signal = _react2['default'].createClass({
     displayName: 'Signal',
 
     handle_vote: function handle_vote(e) {
-        console.log("Signal.handle_vote()", this.props.voter.uid, this.props.signal.user.uid);
-        if (_config2['default'].voter.prevent_vote_self && this.props.voter.uid === this.props.signal.user.uid) return;
+        debug_log("Signal.handle_vote()", this.props.voter.uid, this.props.signal.user.uid);
+        if (config.voter.prevent_vote_self && this.props.voter.uid === this.props.signal.user.uid) return;
         this.props.update_state_vote(this.props.voter.uid, this.props.signal.user.uid);
         socket.emit("send:vote", {
             voter: this.props.voter.uid,
@@ -109,10 +191,10 @@ var Signal = _react2['default'].createClass({
         });
     },
     handle_modify: function handle_modify(e) {
-        console.log("Signal.handle_modify()", this.props.signal.text);
-        // console.log("Signal.handle_modify()",this.refs.signalInput.getDOMNode().textContent);
-        // console.log("Signal handle_modify:",this.refs.signalInput.getDOMNode().children[0].textContent);
-        console.log("on error check the html and per sure there are no spaces in your babel");
+        debug_log("Signal.handle_modify()", this.props.signal.text);
+        // debug_log("Signal.handle_modify()",this.refs.signalInput.getDOMNode().textContent);
+        // debug_log("Signal handle_modify:",this.refs.signalInput.getDOMNode().children[0].textContent);
+        debug_log("on error check the html and per sure there are no spaces in your babel");
         // var value = this.refs.signalInput.getDOMNode().textContent;
         // remove . and \n from the new text. So that detection to change tab on . and \n works
         this.props.update_state_signal(this.props.signal.text.replace(/\.|\n/g, ""));
@@ -129,7 +211,7 @@ var Signal = _react2['default'].createClass({
                     null,
                     _react2['default'].createElement(
                         'td',
-                        { width: '10' },
+                        null,
                         _react2['default'].createElement(
                             'button',
                             { className: 'modify_button',
@@ -187,17 +269,16 @@ var Voter = _react2['default'].createClass({
             });
             // signals[key].vote_count = vote_count;
         });
-        console.log('Voter.addvote_count - signals after vote_count added', signals);
-        // BUG TODO : DO we need to call setState ?
+        debug_log('Voter.addvote_count - signals after vote_count added', signals);
     },
     organize_signal_keys: function organize_signal_keys(keys) {
-        var signals = this.props.signals;
         var user = this.props.user;
         var group_mode = this.props.group_mode;
-        console.log('Voter.organize_signal_keys - keys', keys);
+        var signals = this.props.signals;
+        debug_log('Voter.organize_signal_keys - keys', keys);
         // remove our key/uid from list if it is there
         if (keys.indexOf(user.uid) >= 0) keys.splice(keys.indexOf(user.uid), 1);
-        console.log('Voter.organize_signal_keys - without own', keys);
+        debug_log('Voter.organize_signal_keys - without own', keys);
         // sort by votes
         var sorted = keys.sort(function (a, b) {
             // lowest first, to highest end
@@ -205,40 +286,78 @@ var Voter = _react2['default'].createClass({
             // highest first, to lowest end
             return signals[b].vote_count - signals[a].vote_count;
         });
-        console.log('Voter.organize_signal_keys - keys sorted by vote_count', sorted);
+        debug_log('Voter.organize_signal_keys - keys sorted by vote_count', sorted);
         // put into groups if group_mode is true
         // if in group_mode split into a/b. Else everything into a
         // Also, remove empty if config says so
         var groups = { a: [], b: [] };
-        sorted.map(function (key) {
-            var signal = signals[key];
-            if (signal.text.length < _config2['default'].voter.min_signal_length) return;
-            console.log('Voter.organize_signal_keys key,gid', key, signal.user.gid);
-            if (group_mode && signal.user.gid == 'b') groups.b.push(key);else groups.a.push(key);
+        sorted.forEach(function (k) {
+            if (signals[k].text.length < config.voter.min_signal_length) return;
+            debug_log('Voter.organize_signal_keys key,gid', k, signals[k].user.gid);
+            if (group_mode && signals[k].user.gid == 'b') groups.b.push(k);else groups.a.push(k);
         });
-        console.log('Voter.organize_signal_keys - groups', groups);
+        debug_log('Voter.organize_signal_keys - groups', groups);
         return groups;
+        // var group =  sorted.map((key) => {
+        //     var signal = signals[key];
+        //     if (signal.text.length < config.voter.min_signal_length)
+        //         return;
+        //     debug_log('Voter.organize_signal_keys key,gid', key, signal.user.gid)
+        //     if (group_mode && signal.user.gid == 'b')
+        //         return key.user.gid == key //groups.b.push(key)
+        //     else
+        //         return key //groups.a.push(key)
+        // });
+        // debug_log('Voter.organize_signal_keys - group', group);
+        // return group;
+    },
+    set_signal_order: function set_signal_order(signal_keys) {
+        // expect signal keys ordered by vote
+        debug_log('Voter.set_signal_order()');
+        debug_log('Voter.set_signal_order() - current_neighbor', current_neighbor);
+        debug_log('Voter.set_signal_order() - keys', signal_keys);
+        var current_selected = this.props.votes[this.props.user.uid];
+        debug_log('Voter.set_signal_order() - current_selected', current_selected);
+        var current_top = signal_keys[0];
+        signal_keys.shift();
+        debug_log('Voter.set_signal_order() - current_top', current_top);
+
+        // current neighbor set in timer loop
+        // if (!current_neighbor)
+        //     current_neighbor = signal_keys[2]
+        if (!current_latest) current_latest = signal_keys.length > 0 ? signal_keys.splice(-1, 1)[0] : undefined;
+        if (!current_random) current_random = signal_keys.length > 0 ? signal_keys[Math.floor(Math.random() * signal_keys.length)] : undefined;
+        // make sure we cover cases where several overlaps happen
+        if (!current_latest2) current_latest2 = signal_keys.length > 0 ? signal_keys.splice(-1, 1)[0] : undefined;
+        if (!current_random2) current_random2 = signal_keys.length > 0 ? signal_keys[Math.floor(Math.random() * signal_keys.length)] : undefined;
+        var current_second = signal_keys[0];
+        // do not shift because it may be current second never shows up
+
+        var ret = [current_top, current_selected, current_neighbor, current_latest, current_random, current_second, current_latest2, current_random2];
+        // unique and remove undefined
+        debug_log('Voter.set_signal_order() - before filter', ret);
+        var ret = ret.filter(function (value, index, self) {
+            return value && self.indexOf(value) === index;
+        });
+        // make sure no more than 5
+        var ret = ret.slice(0, config.voter.show_n_signals);
+        return ret;
     },
     render: function render() {
-        var _this2 = this;
+        var _this3 = this;
 
-        var signal_keys = Object.keys(this.props.signals);
+        var signals = this.props.signals;
+        var signal_keys = Object.keys(signals);
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys);
         // sort keys by votes and groups
         var key_groups = this.organize_signal_keys(signal_keys);
-        console.log('Voter render - key_groups', key_groups);
-        if (this.props.group_mode) var keys = key_groups[this.props.user.gid];else var keys = key_groups.a;
-        console.log('Voter render - keys', keys);
+        debug_log('Voter render - key_groups', key_groups, key_groups.a);
+        if (this.props.group_mode) var keys = this.set_signal_order(key_groups[this.props.user.gid]);else var keys = this.set_signal_order(key_groups.a);
+        debug_log('Voter render - keys after order', keys);
 
         var my_signal = null;
-        if (this.props.signals[this.props.user.uid]) {
-            // my_signal = <div className='signal my_signal'>
-            //     <span>Yours:&nbsp;&nbsp;</span>
-            // 	<span className="signal_text">{this.props.signals[this.props.user.uid].text}</span>
-            //     <span className="vote_count">&nbsp;&nbsp;{this.props.signals[this.props.user.uid].vote_count}&nbsp;votes</span>
-            // </div>;
-
+        if (signals[this.props.user.uid]) {
             my_signal = _react2['default'].createElement(
                 'div',
                 { className: 'signal my_signal' },
@@ -255,7 +374,7 @@ var Voter = _react2['default'].createClass({
                                 'button',
                                 { className: 'modify_button',
                                     onClick: function () {
-                                        return _this2.props.update_state_signal(_this2.props.signals[_this2.props.user.uid].text.replace(/\.|\n/g, ""));
+                                        return _this3.props.update_state_signal(signals[_this3.props.user.uid].text.replace(/\.|\n/g, ""));
                                     } },
                                 ' '
                             )
@@ -266,7 +385,7 @@ var Voter = _react2['default'].createClass({
                             _react2['default'].createElement(
                                 'span',
                                 { className: 'signal_text' },
-                                this.props.signals[this.props.user.uid].text
+                                signals[this.props.user.uid].text
                             ),
                             _react2['default'].createElement(
                                 'button',
@@ -274,7 +393,7 @@ var Voter = _react2['default'].createClass({
                                     onClick: function () {
                                         return alert('you cannot vote for yourself');
                                     } },
-                                this.props.signals[this.props.user.uid].vote_count
+                                signals[this.props.user.uid].vote_count
                             ),
                             _react2['default'].createElement(
                                 'span',
@@ -285,14 +404,6 @@ var Voter = _react2['default'].createClass({
                     )
                 )
             );
-            // <Signal
-            //                 this_class_name='signal my_signal'
-            //                 voter={fakeUser}
-            // 				key={this.props.user.uid}
-            //                 signal={this.props.signals[this.props.user.uid]}
-            //                 update_state_signal={this.props.update_state_signal}
-            //                 update_state_vote={() => alert('you cannot vote for yourself')}
-            // 				/>
         }
 
         if (keys.length <= 0 && !my_signal) {
@@ -340,11 +451,15 @@ var Voter = _react2['default'].createClass({
                 },
 
                 //Object.keys(this.props.signals).map((signal_key) => {
+                //keys.slice(0,config.voter.show_n_signals).map(
                 keys.map(function (signal_key) {
-                    console.log('Voter render - signal_key', signal_key);
+                    debug_log('Voter render - signal_key', signal_key);
+                    // Handle the condition where current_neighbor was
+                    // the winning active signal
+                    if (!signals[signal_key]) return;
                     var this_class_name = 'signal';
-                    if (_this2.props.user.uid === signal_key) this_class_name += ' my_signal';
-                    if (_this2.props.votes[_this2.props.user.uid] && _this2.props.votes[_this2.props.user.uid] === signal_key) this_class_name += ' myVote';
+                    if (_this3.props.user.uid === signal_key) this_class_name += ' my_signal';
+                    if (_this3.props.votes[_this3.props.user.uid] && _this3.props.votes[_this3.props.user.uid] === signal_key) this_class_name += ' myVote';
 
                     // var __this = this;
                     // var vote_count = Object.keys(this.props.votes).filter(
@@ -355,15 +470,18 @@ var Voter = _react2['default'].createClass({
                     //                   function(v){
                     //                        return v == signal_key;
                     //                   }).length;
-                    console.log('Voter render - vote_count', _this2.props.signals[signal_key].vote_count);
+                    debug_log('Voter render - signals', signals);
+                    debug_log('Voter render - signal_key', signal_key);
+                    debug_log('Voter render - signals[signal_key]', signals[signal_key]);
+                    debug_log('Voter render - vote_count', signals[signal_key].vote_count);
 
                     return _react2['default'].createElement(Signal, {
                         this_class_name: this_class_name,
-                        voter: _this2.props.user,
+                        voter: _this3.props.user,
                         key: signal_key,
-                        signal: _this2.props.signals[signal_key],
-                        update_state_signal: _this2.props.update_state_signal,
-                        update_state_vote: _this2.props.update_state_vote
+                        signal: signals[signal_key],
+                        update_state_signal: _this3.props.update_state_signal,
+                        update_state_vote: _this3.props.update_state_vote
                     });
                 })
             )
@@ -378,7 +496,9 @@ var App = _react2['default'].createClass({
         return { user: {}, users: [],
             signals: {}, signal: '',
             votes: {}, group_mode: false,
-            selected_tab: _config2['default'].default_tab ? _config2['default'].default_tab : 0 };
+            epoch: config.epoch,
+            selected_tab: config.default_tab ? config.default_tab : 0,
+            voter_enabled: voter_tab_reenable ? true : config.voter.enabled };
     },
 
     componentDidMount: function componentDidMount() {
@@ -389,27 +509,35 @@ var App = _react2['default'].createClass({
         socket.on('user:left', this._user_left);
         socket.on('connection', this._on_connection);
         socket.on('admin:command', this._admin_command);
+        socket.on('epoch:active_signals', this._epoch_active_signals);
     },
     _on_connection: function _on_connection(data) {
-        console.log('App._on_connection() - sessionID ' + data.handshake);
+        debug_log('App._on_connection() - sessionID ' + data.handshake);
     },
     _initialize: function _initialize(data) {
-        console.log('App._initialize() - data', data);
+        debug_log('App._initialize() - data', data);
         var users = data.users;
         var user = data.user;
         var signals = data.signals;
         var votes = data.votes;
         var group_mode = data.group_mode;
+        var epoch = data.epoch;
 
+        config = data.config;
+        // save uid in case accidental browser refreshed
+        localStorage.uid = user.uid;
+        if (using_hash_uid) window.location.hash = user.uid + (voter_tab_reenable ? "voter" : "");
         if (signals[user.uid]) var signal = signals[user.uid].text;else var signal = '';
-        this.setState({ users: users, user: user, signals: signals, signal: signal, votes: votes, group_mode: group_mode });
-        //console.log('App._initialize() - data.handshake', data.handshake);
+        this.setState({ users: users, user: user, signals: signals, signal: signal, votes: votes, group_mode: group_mode, epoch: epoch,
+            voter_enabled: voter_tab_reenable ? true : config.voter.enabled });
+        //debug_log('App._initialize() - data.handshake', data.handshake);
+        this.signal_order_loop();
     },
 
     _signal_recieve: function _signal_recieve(data) {
-        console.log("App._signal_recieve() - data:\n", data);
+        debug_log("App._signal_recieve() - data:\n", data);
         if (this.state.user.uid === data.user.uid) {
-            console.log('_signal_recieve', 'self. skip');
+            debug_log('_signal_recieve', 'self. skip');
             return;
         }
         var signals = this.state.signals;
@@ -418,68 +546,74 @@ var App = _react2['default'].createClass({
             signals[data.user.uid] = data;
             this.setState({ signals: signals });
         }
-        console.log('App._signal_recieve() debug state', this.state);
-        console.log('App._signal_recieve() debug data', data);
+        debug_log('App._signal_recieve() debug state', this.state);
+        debug_log('App._signal_recieve() debug data', data);
     },
     _vote_recieve: function _vote_recieve(data) {
-        console.log("App._vote_recieve() - data:\n", data);
+        debug_log("App._vote_recieve() - data:\n", data);
         var votes = this.state.votes;
 
         // only change state when vote is new
         if (!votes[data.voter] || votes[data.voter] !== data.signal) {
-            console.log("App._vote_recieve() - setState");
+            debug_log("App._vote_recieve() - set_state");
             votes[data.voter] = data.signal;
             this.setState({ votes: votes });
         }
     },
     _user_joined: function _user_joined(data) {
+        debug_log('App.user_joined()');
+        debug_log('App.user_joined() - data', data);
         var _state = this.state;
         var users = _state.users;
         var signals = _state.signals;
         var user = data.user;
 
         if (this.state.user.uid === data.user.uid) {
-            console.log('App._user_joined()', 'self. skip');
+            debug_log('App._user_joined()', 'self. skip');
             return;
         }
         users[user.uid] = user;
-        if (_config2['default'].voter.show_joined_messages) {
+        if (config.voter.show_joined_messages) {
             signals['###Server'] = {
                 user: { uid: '###Server', name: 'Server' },
                 text: user.name + ' Joined'
             };
-            if (_config2['default'].voter.show_joined_messages_timeout) {
+            if (config.voter.show_joined_messages_timeout) {
                 window.setTimeout((function () {
                     var signals = this.state.signals;
                     if (signals['###Server']) {
                         delete signals['###Server'];
                         this.setState({ signals: signals });
                     }
-                }).bind(this), _config2['default'].voter.show_joined_messages_timeout);
+                }).bind(this), config.voter.show_joined_messages_timeout);
             }
         }
         this.setState({ users: users, signals: signals });
     },
 
     _user_left: function _user_left(data) {
+        debug_log('App.user_left()');
+        if (!data.uid) return;
+        debug_log('App.user_left() - data', data);
+
         var _state2 = this.state;
         var users = _state2.users;
         var signals = _state2.signals;
         var user = data.user;
 
-        if (_config2['default'].voter.show_joined_messages) {
+        if (config.voter.show_joined_messages) {
             signals['Server'] = {
                 user: { uid: '###Server', name: 'Server' },
                 text: user.name + ' Joined'
             };
-            if (_config2['default'].voter.show_left_messages_timeout) {
+            if (config.voter.show_left_messages_timeout) {
                 window.setTimeout((function () {
                     var signals = this.state.signals;
                     if (signals['###Server']) {
                         delete signals['###Server'];
                         this.setState({ signals: signals });
                     }
-                }).bind(this), _config2['default'].voter.show_left_messages_timeout);
+                }).bind(this), config.voter.show_left_messages_timeout);
             }
         }
         delete users[user.uid];
@@ -487,13 +621,15 @@ var App = _react2['default'].createClass({
     },
 
     update_state_signal: function update_state_signal(value) {
-        console.log("App.update_state_signal() - value:", value);
+        debug_log("App.update_state_signal() - value:", value);
+        // get rid of \n and .
         // set Writer value and change to Writer tab:
+        value = value.replace(/\n|\./g, '');
         localStorage.signal = value;
         this.setState({ signal: value, selected_tab: 0 });
     },
     update_state_vote: function update_state_vote(voter_uid, signal_uid) {
-        console.log("App.update_state_votes() - votes:", votes);
+        debug_log("App.update_state_votes() - votes:", votes);
         var votes = this.state.votes;
 
         // only if new value
@@ -503,51 +639,175 @@ var App = _react2['default'].createClass({
         }
     },
     handle_writer_signal_field_changed: function handle_writer_signal_field_changed(value) {
-        console.log('App.handle_writer_signal_field_changed() - value', value);
+        debug_log('App.handle_writer_signal_field_changed() - value', value);
         var _state3 = this.state;
         var user = _state3.user;
         var signals = _state3.signals;
+        var voter_enabled = _state3.voter_enabled;
 
-        signals[user.uid] = { user: user, text: value };
-        this.setState({ signal: value, signals: signals });
         // on change if last char is . or \n change to voting tab
         // catch common phone period after double space bar
-        if (value.slice(-1) == "\n" || value.match(/\. *$/g) !== null) {
-            this.setState({ selected_tab: 1 });
+        if (voter_enabled) {
+            if (value.slice(-1) == "\n" || value.match(/\. *$/g) !== null) {
+                this.setState({ selected_tab: 1 });
+            }
         }
+        value = value.replace(/\n|\./g, '');
+        signals[user.uid] = { user: user, text: value };
+        this.setState({ signal: value, signals: signals });
     },
     _admin_command: function _admin_command(command) {
-        console.log('App._admin_command() - data', command);
-        if (command.method == 'setState') {
+        debug_log('App._admin_command() - data', command);
+        if (command.method == 'set_state') {
             if (command.state == 'group_mode') {
                 var group_mode = this.state.group_mode;
 
                 group_mode = command.value;
                 this.setState({ group_mode: group_mode });
-                console.log('App._admin_command() - state', this.state);
+                debug_log('App._admin_command() - state', this.state);
+                // clear previous order items
+                current_latest = undefined;
+                current_random = undefined;
+                current_latest2 = undefined;
+                current_random2 = undefined;
             }
+        } else if (command.method == 'set_config') {
+            config = command.value;
+            this.setState({ selected_tab: 0 });
+            // make sure write tab is shown if voter not enabled
+            if (!config.voter.enabled && !voter_tab_reenable) this.setState({ voter_enabled: config.voter.enabled,
+                selected_tab: 0 });else this.setState({ voter_enabled: config.voter.enabled });
+        } else if (command.method == 'reload_page') {
+            window.location.reload(false);
+        } else if (command.method == 'broadcast_message') {
+            var message = command.value;
+            if (broadcast_message_timer) window.clearTimeout(broadcast_message_timer);
+            var elem = document.getElementById('broadcast_message');
+            elem.innerHTML = message;
+            elem.style.display = 'flex';
+            broadcast_message_timer = window.setTimeout(function () {
+                document.getElementById('broadcast_message').style.display = 'none';
+            }, 7000);
+        }
+    },
+    signal_order_loop: function signal_order_loop() {
+        debug_log('App.signal_order_loop()');
+        if (signal_order_timer) window.clearTimeout(signal_order_timer);
+        // setState will cause a render
+        // our render calls a function that redefines orders
+        // but here we tell it the things we want reset
+        current_latest = undefined;
+        current_random = undefined;
+        current_latest2 = undefined;
+        current_random2 = undefined;
+        var _this = this;
+        signal_order_timer = window.setTimeout((function () {
+            this.setState(this.state);
+            this.signal_order_loop();
+        }).bind(this), config.voter.reorder_wait_time * 1000);
+    },
+    // called when epoch has ended. server sends chosen signals
+    _epoch_active_signals: function _epoch_active_signals(active_signals) {
+        debug_log('App._epoch_active_signals() - active_signals', active_signals);
+        var _state4 = this.state;
+        var user = _state4.user;
+        var signals = _state4.signals;
+        var votes = _state4.votes;
+
+        // setup certain signal list constants:
+        current_neighbor = votes[user.uid];
+        // debug_log('App._epoch_active_signals() - current_neighbor, uid', active_signals, user.uid)
+
+        // restart list change timer for random and latest
+        this.signal_order_loop();
+
+        // TODO Show message to the user when it was their signal that won
+        if (active_signals.a.user && active_signals.a.user.uid) {
+            debug_log('App._epoch_active_signals - a key', active_signals.a.user.uid, user.uid);
+            if (config.epoch.delete_winner) {
+                // purge signal
+                delete signals[active_signals.a.user.uid]; //.text = ''
+                if (active_signals.a.user.uid == current_selected) current_selected = undefined;
+                // purge vote
+                Object.keys(votes).forEach(function (k) {
+                    if (votes[k] == active_signals.a.user.uid) delete votes[k];
+                });
+                this.setState({ signals: signals, votes: votes });
+                // purge writer if we are winner
+                if (active_signals.a.user.uid == user.uid) {
+                    debug_log('App._epoch_active_signals is us', config.epoch.winner_switches_to_write_tab);
+                    if (config.epoch.winner_switches_to_write_tab) this.setState({ signal: '', selected_tab: 0 });else this.setState({ signal: '' });
+                }
+            }
+        }
+        if (active_signals.b.user && active_signals.b.user.uid) {
+            debug_log('App._epoch_active_signals - b key', active_signals.b.user.uid, user.uid);
+            if (config.epoch.delete_winner) {
+                delete signals[active_signals.b.user.uid]; //.text = ''
+                if (active_signals.b.user.uid == current_selected) current_selected = undefined;
+                Object.keys(votes).forEach(function (k) {
+                    if (votes[k] == active_signals.b.user.uid) delete votes[k];
+                });
+                this.setState({ signals: signals, votes: votes });
+                if (active_signals.b.user.uid == user.uid) {
+                    debug_log('App._epoch_active_signals is us', config.epoch.winner_switches_to_write_tab);
+                    if (config.epoch.winner_switches_to_write_tab) this.setState({ signal: '', selected_tab: 0 });else this.setState({ signal: '', selected_tab: 0 });
+                }
+            }
+        }
+        // shall we delete votes before next epoch
+        // Only clear votes if the signal for this users group changed actually
+        if (active_signals.config.clear_votes_on_epoch) {
+            this.setState({ votes: {} });
+        }
+        if (active_signals.config.clear_signals_on_epoch) {
+            this.setState({ signals: {} });
         }
     },
     on_tab_select: function on_tab_select(selected_tab, last) {
+        var user = this.state.user;
+
         this.setState({ selected_tab: selected_tab });
         // remove \n and .
         if (selected_tab == 0) {
-            var _state4 = this.state;
-            var signal = _state4.signal;
-            var signals = _state4.signals;
-            var signal = _state4.signal;
+            var _state5 = this.state;
+            var signal = _state5.signal;
+            var signals = _state5.signals;
 
-            if (value.slice(-1) == "\n" || value.match(/\. *$/g) !== null) {
-                signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
+            //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
+            if (signal.slice(-1) == "\n" || signal.match(/\. *$/g) !== null) {
+                signal = signal.replace(/\n/g, '').replace(/\./g, '');
+                this.setState({ signal: signal });
             }
-            this.setState({ signal: signal, signals: signals });
         }
     },
     render: function render() {
         // if in group mode add group css class to root signal div
         var divClass = 'first_container';
-        if (this.state.group_mode) divClass += ' signals_group_' + this.state.user.gid;
-
+        if (this.state.group_mode) {
+            divClass += ' signals_group_' + this.state.user.gid;
+            document.body.className = 'signals_group_' + this.state.user.gid;
+        } else {
+            document.body.className = '';
+        }
+        var voter_tab = null;
+        if (this.state.voter_enabled) {
+            // voter_tab = <TabPanel>
+            //                         <Voter
+            //                             user={this.state.user}
+            //                             votes={this.state.votes}
+            //                             signals={this.state.signals}
+            //                             update_state_signal={this.update_state_signal}
+            //                             update_state_vote={this.update_state_vote}
+            //                             group_mode={this.state.group_mode} />
+            //                     </TabPanel>;
+            voter_tab = _react2['default'].createElement(
+                _reactTabs.Tab,
+                null,
+                'Vote'
+            );
+        }
         return _react2['default'].createElement(
             'div',
             { className: divClass },
@@ -563,11 +823,7 @@ var App = _react2['default'].createClass({
                         null,
                         'Write'
                     ),
-                    _react2['default'].createElement(
-                        _reactTabs.Tab,
-                        null,
-                        'Vote'
-                    )
+                    voter_tab
                 ),
                 _react2['default'].createElement(
                     _reactTabs.TabPanel,
@@ -575,13 +831,7 @@ var App = _react2['default'].createClass({
                     _react2['default'].createElement(Writer, {
                         user: this.state.user,
                         signal: this.state.signal,
-                        handle_writer_signal_field_changed: this.handle_writer_signal_field_changed }),
-                    _react2['default'].createElement(
-                        'span',
-                        { className: 'user_name' },
-                        'You are ',
-                        this.state.user.name
-                    )
+                        handle_writer_signal_field_changed: this.handle_writer_signal_field_changed })
                 ),
                 _react2['default'].createElement(
                     _reactTabs.TabPanel,
@@ -594,7 +844,8 @@ var App = _react2['default'].createClass({
                         update_state_vote: this.update_state_vote,
                         group_mode: this.state.group_mode })
                 )
-            )
+            ),
+            _react2['default'].createElement('div', { id: 'broadcast_message', style: { display: "none" } })
         );
     }
 });
@@ -606,7 +857,7 @@ _reactDom2['default'].render(_react2['default'].createElement(App, null), docume
                                                                                                                                     onClick={this.handle_vote}>({this.props.signal.user.name})</span> */ /* <Tabs selectedIndex={this.state.selected_tab}
                                                                                                                                                                                                               onSelect={selected_tab => this.setState({ selected_tab })} > */ /* <span className="userUID">({this.state.user.uid})</span> */
 
-},{"../config":2,"react":205,"react-dom":36,"react-flip-move":168,"react-tabs":178,"react-textarea-autosize":179}],2:[function(require,module,exports){
+},{"../config.js":2,"react":205,"react-dom":36,"react-flip-move":168,"react-tabs":178,"react-textarea-autosize":179}],2:[function(require,module,exports){
 'use strict';
 
 var config = {};
@@ -616,34 +867,52 @@ config.voter = {};
 config.stage = {};
 config.epoch = {};
 config.admin = {};
+config.debug = false; // set to true to turn on client debuggin
 
-config.server.port = 3000;
+config.server.port = 8080;
 config.server.mode = 'production'; //NODE_ENV production or development
-// set to cause vote to update
-// config.server.vote_updates_signals = true;
+config.server.load_data_files = false; // load .data/*.json on start?
 
 // if server.reject_empty_signal is true AND writer.send_live_input is true you can wind up with
 // entries with just one character
 config.server.reject_empty_signal = false;
+
+config.default_tab = 0; // 0=BRUSSELS. change to determine default tab 0 = writer, 1 = voter
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
-config.writer.send_live_input = false;
+config.writer.send_live_input = false; // clients send as they type?
 config.writer.submit_on_linebreak = true;
 config.writer.submit_on_period = true;
 config.writer.max_chars = 140;
+config.writer.show_submit_button = true; // true=BRUSSELS
+
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
 config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
-config.default_tab = 1; // change to determine default tab 0 = writer, 1 = voter
-config.stage.opacity_step = 0.2; // dec opacity on signal list by this much with Signal on top starting at 1.0
+config.voter.show_n_signals = 5; //
+config.voter.reorder_wait_time = 7; //
+config.voter.enabled = false; // false=BRUSSELS. if false the vote tap isnt shown
+
+config.stage.show_signal_activity = true; // false means only the current signal is shown
+config.stage.show_vote_count = false;
+config.stage.show_n_signals = 10; // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
+config.stage.group_side_by_side = true; // adds float left css
+config.stage.show_in_chat_bubbles = false; // adds chatbubble css
+
 config.epoch.wait_for_bang_to_start = true; // false then just go
-config.epoch.seed_length = 30; // time to vote
-config.epoch.pause_length = 15; // time before voter faded in
+config.epoch.seed_length = 10; // time to vote
+config.epoch.pause_length = 2; // time before voter faded in
 config.epoch.pause_forced = false; // when true client interface fade out all but count down
-config.epoch.pause_show_progress = true; // show progress cont down
-config.epoch.start_new_epoch_after_pause = true; // if false forces admin bang.
+// config.epoch.pause_show_progress = true  // show progress cont down
+config.epoch.start_new_epoch_after_pause = false; // if false forces admin bang.
+config.epoch.winner_switches_to_write_tab = true; // if true then whoever wens an epoch will be switched to the writer tab in their ui
+config.epoch.delete_winner = true;
+config.epoch.require_min_votes = 0; // 0=BRUSSELS. set to 0 for no limit
+config.epoch.clear_votes_on_epoch = true;
+config.epoch.clear_signals_on_epoch = true;
+config.epoch.sound_on_signal_chosen = true;
 
 module.exports = config;
 
