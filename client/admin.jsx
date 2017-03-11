@@ -5,6 +5,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import config from '../config';
+import stage_messages_init from '../stage_messages.json';
 
 var socket = io.connect({query: 'hash=admin' });
 
@@ -15,18 +16,14 @@ var App = React.createClass({
 			password: localStorage.password ? localStorage.password : '',
 			config: config, // should change on init
 			message_to_stage: '',
-			stage_messages: [
-  				  'Select…',
-  				  'A',
-  				  'B',
-  				  'C'
-			]
+			stage_messages: stage_messages_init
 		};
 	},
     componentDidMount() {
 		socket.on('init', this._initialize);
         socket.on('connection', this._on_connection);
         socket.on('error:message', this._error);
+		socket.on('stage_messages', this._update_stage_messages)
 	},
     _on_connection(data) {
         console.log('App._on_connection() - sessionID ' + data.handshake);
@@ -40,6 +37,12 @@ var App = React.createClass({
         console.log("App._error() - message", data);
         alert("server error:\n"+data.message);
     },
+	_update_stage_messages(data) {
+		console.log("App._update_stage_messages() - messages", data);
+		// returns file contents. must parse
+		console.log(data.messages)
+		this.setState({ stage_messages: data.messages })
+	},
 	toggle_group_mode(){
         console.log("App.toggle_group_mode()");
         var {group_mode, password} = this.state;
@@ -103,14 +106,18 @@ var App = React.createClass({
             }
         });
     },
-	handle_stage_message(){
+
+	//
+	// Stage message is sent to the stage windows but not user windows
+	//
+	handle_stage_message_broadcast(){
         // var password = location.hash.slice(location.hash.indexOf('#')+1);
-        console.log("App.handle_stage_message()");
+        console.log("App.handle_stage_message_broadcast()");
         var {password} = this.state;
         socket.emit('admin:command', {
             password: password,
             command: {
-                method: 'stage_message',
+                method: 'broadcast_stage_message',
 				value: this.message_to_stage.value
             }
         });
@@ -121,6 +128,32 @@ var App = React.createClass({
 	handle_stage_messages_create_item(item, key){
 		return <option key={key}>{item}</option>;
 	},
+	handle_stage_messages_download(){
+        // var password = location.hash.slice(location.hash.indexOf('#')+1);
+        console.log("App.handle_stage_messages_download()");
+        var {password} = this.state;
+        socket.emit('admin:command', {
+            password: password,
+            command: {
+                method: 'download_stage_messages',
+				url: this.stage_messages_download_url.value
+            }
+        });
+    },
+	handle_stage_messages_get(){
+        // var password = location.hash.slice(location.hash.indexOf('#')+1);
+        console.log("App.handle_stage_messages_get()");
+        var {password} = this.state;
+        socket.emit('admin:command', {
+            password: password,
+            command: {
+                method: 'get_stage_messages'
+            }
+        });
+    },
+
+
+
 	change_password(e) {
         localStorage.password = e.target.value;
         this.setState({ password : e.target.value });
@@ -225,7 +258,7 @@ var App = React.createClass({
 								ref={(i) => this.message_to_broadcast = i}
 			                    size="30"/></td>
 						</tr><tr>
-							<td><button onClick={this.handle_stage_message}>To Stage</button></td>
+							<td><button onClick={this.handle_stage_message_broadcast}>To Stage</button></td>
 							<td>
 								<textarea
 				                    type="text"
@@ -242,7 +275,14 @@ var App = React.createClass({
 				                    <option value="Java Java">Java Java</option>
 				                    <option value="C++">C++</option> */}
 						        </select><br />
-								<button onClick={this.handle_stage_messages_download}>update list</button>
+								<button onClick={this.handle_stage_messages_download}>download list</button><br />
+								<input
+				                    type="text"
+				                    placeholder="url to download from"
+									defaultValue="https://pad.riseup.net/p/crowdwise/export/txt"
+									ref={(i) => this.stage_messages_download_url = i}
+				                    size="30"/><br />
+								<button onClick={this.handle_stage_messages_get}>get list</button>
 							</td>
 						</tr><tr>
 							<td><button onClick={this.toggle_voter_vote}>toggle</button></td>

@@ -24,6 +24,7 @@ input, button, select {
     font-size: inherit;
     font-family: inherit;
 }
+select  { font-size: 10pt }
 select {
     /*max-width: 300px;*/
 }

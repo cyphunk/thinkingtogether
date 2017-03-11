@@ -28,6 +28,8 @@ var _progressbarJs2 = _interopRequireDefault(_progressbarJs);
 var config = require('../config');
 var socket = io.connect();
 
+var broadcast_message_timer = null;
+
 var progress_bar_a = null;
 var progress_bar_b = null;
 var App = _react2['default'].createClass({
@@ -64,6 +66,7 @@ var App = _react2['default'].createClass({
 		socket.on('admin:command', this._admin_command);
 		socket.on('admin:stage', this._admin_stage);
 		socket.on('admin:stagestyle', this._admin_stage_style);
+		socket.on('admin:stagemessage', this._admin_stage_message);
 		socket.on('epoch:start', this._epoch_start);
 		socket.on('epoch:config', this._epoch_config);
 		socket.on('epoch:stop_progress', this._epoch_stop_progress);
@@ -153,6 +156,18 @@ var App = _react2['default'].createClass({
 		container.style.paddingTop = style.paddingTop + 'em';
 		this.setState({ style: style });
 	},
+	_admin_stage_message: function _admin_stage_message(data) {
+		console.log('App._admin_stage_message()');
+		console.log('App._admin_stage_message - data', data);
+		var message = data.message;
+		if (broadcast_message_timer) window.clearTimeout(broadcast_message_timer);
+		var elem = document.getElementById('broadcast_message');
+		elem.innerHTML = message;
+		elem.style.display = 'flex';
+		broadcast_message_timer = window.setTimeout(function () {
+			document.getElementById('broadcast_message').style.display = 'none';
+		}, 15000);
+	},
 	_epoch_start: function _epoch_start(new_progress) {
 		console.log('App.epoch_start()');
 		var _state = this.state;
@@ -190,6 +205,17 @@ var App = _react2['default'].createClass({
 				console.log('progress_bar_b finished');
 			});
 		}
+		// sound during seeding
+		if (config.epoch.sound_on_seeding) {
+			var sound = document.getElementById('epoch_seeding_sound');
+
+			if (sound.currentTime > config.epoch.sound_on_seeding_subtract_each_play + 1) sound.currentTime = sound.currentTime - config.epoch.sound_on_seeding_subtract_each_play;
+			sound.play();
+			window.setTimeout(function () {
+				console.log('stop seeding sound');
+				document.getElementById('epoch_seeding_sound').pause();
+			}, progress.intervalTime * 100); // -100 so other sound has time to spin up
+		}
 	},
 	_epoch_config: function _epoch_config(data) {
 		console.log('App._epoch_config() - data', data);
@@ -213,6 +239,8 @@ var App = _react2['default'].createClass({
 			intervalTime: 0
 		};
 		this.setState({ progress: progress });
+		// sound during seeding
+		if (config.epoch.sound_on_seeding) document.getElementById('epoch_seeding_sound').pause();
 	},
 	_epoch_active_signals: function _epoch_active_signals(new_active_signals) {
 		console.log('App._epoch_active_signals()');
@@ -388,7 +416,9 @@ var App = _react2['default'].createClass({
 				'div',
 				{ className: 'signals' },
 				signal_group_a,
-				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: '/beep.mp3', autoPlay: 'false' })
+				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: config.epoch.sound_on_signal_chosen_uri }),
+				_react2['default'].createElement('audio', { ref: 'epoch_seeding_sound', id: 'epoch_seeding_sound', src: config.epoch.sound_on_seeding_uri, loop: true }),
+				_react2['default'].createElement('div', { id: 'broadcast_message', style: { display: "none" } })
 			);
 		} else {
 			var groupAClass = "signals group_a";
@@ -415,7 +445,9 @@ var App = _react2['default'].createClass({
 					{ className: groupBClass },
 					signal_group_b
 				),
-				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: '/beep.mp3', autoPlay: 'false' })
+				_react2['default'].createElement('audio', { ref: 'epoch_sound', id: 'epoch_sound', src: config.epoch.sound_on_signal_chosen_uri }),
+				_react2['default'].createElement('audio', { ref: 'epoch_seeding_sound', id: 'epoch_seeding_sound', src: config.epoch.sound_on_seeding_uri, loop: true }),
+				_react2['default'].createElement('div', { id: 'broadcast_message', style: { display: "none" } })
 			);
 		}
 	}
@@ -451,17 +483,21 @@ config.default_tab = 0; // 0=BRUSSELS. change to determine default tab 0 = write
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
 config.writer.send_live_input = false; // clients send as they type?
-config.writer.submit_on_linebreak = true;
-config.writer.submit_on_period = true;
-config.writer.max_chars = 140;
+// config.writer.submit_on_linebreak = true
+config.writer.submit_on_linebreak = false; // BRUSSELS
+// config.writer.submit_on_period = true
+config.writer.submit_on_period = false; // BRUSSELS
+// config.writer.max_chars = 140
+config.writer.max_chars = 300; // BRUSSELS
+
 config.writer.show_submit_button = true; // true=BRUSSELS
 
 config.voter.show_joined_messages = false;
 config.voter.prevent_vote_self = true;
-config.voter.min_signal_length = 1; // 0 to show empty. 1 to allow char only. 3etc for forcing sentences
+config.voter.min_signal_length = 1; // len chars. 0 to show empty. 1 to allow char only. 3etc for forcing sentences
 config.voter.show_n_signals = 5; //
 config.voter.reorder_wait_time = 7; //
-config.voter.enabled = false; // false=BRUSSELS. if false the vote tap isnt shown
+config.voter.enabled = false; // false=BRUSSELS. if false the vote tab isnt shown
 
 config.stage.show_signal_activity = true; // false means only the current signal is shown
 config.stage.show_vote_count = false;
@@ -472,7 +508,7 @@ config.stage.group_side_by_side = true; // adds float left css
 config.stage.show_in_chat_bubbles = false; // adds chatbubble css
 
 config.epoch.wait_for_bang_to_start = true; // false then just go
-config.epoch.seed_length = 10; // time to vote
+config.epoch.seed_length = 15; // time to vote
 config.epoch.pause_length = 2; // time before voter faded in
 config.epoch.pause_forced = false; // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
@@ -482,7 +518,11 @@ config.epoch.delete_winner = true;
 config.epoch.require_min_votes = 0; // 0=BRUSSELS. set to 0 for no limit
 config.epoch.clear_votes_on_epoch = true;
 config.epoch.clear_signals_on_epoch = true;
-config.epoch.sound_on_signal_chosen = true;
+config.epoch.sound_on_signal_chosen = true; // beep on send of epoch
+config.epoch.sound_on_signal_chosen_uri = '/beep.mp3'; // in public dir
+config.epoch.sound_on_seeding = true; //BRUSSELS. play sound during seeding phase
+config.epoch.sound_on_seeding_uri = '/countdown.mp3'; // in public dir
+config.epoch.sound_on_seeding_subtract_each_play = 5.0; // - ms from currentTime position. It's a nice effect if wave is long. 0 other wise
 
 module.exports = config;
 

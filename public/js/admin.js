@@ -17,6 +17,10 @@ var _config = require('../config');
 
 var _config2 = _interopRequireDefault(_config);
 
+var _stage_messagesJson = require('../stage_messages.json');
+
+var _stage_messagesJson2 = _interopRequireDefault(_stage_messagesJson);
+
 var socket = io.connect({ query: 'hash=admin' });
 
 var App = _react2['default'].createClass({
@@ -28,13 +32,14 @@ var App = _react2['default'].createClass({
 			password: localStorage.password ? localStorage.password : '',
 			config: _config2['default'], // should change on init
 			message_to_stage: '',
-			stage_messages: ['Select…', 'A', 'B', 'C']
+			stage_messages: _stage_messagesJson2['default']
 		};
 	},
 	componentDidMount: function componentDidMount() {
 		socket.on('init', this._initialize);
 		socket.on('connection', this._on_connection);
 		socket.on('error:message', this._error);
+		socket.on('stage_messages', this._update_stage_messages);
 	},
 	_on_connection: function _on_connection(data) {
 		console.log('App._on_connection() - sessionID ' + data.handshake);
@@ -49,6 +54,12 @@ var App = _react2['default'].createClass({
 	_error: function _error(data) {
 		console.log("App._error() - message", data);
 		alert("server error:\n" + data.message);
+	},
+	_update_stage_messages: function _update_stage_messages(data) {
+		console.log("App._update_stage_messages() - messages", data);
+		// returns file contents. must parse
+		console.log(data.messages);
+		this.setState({ stage_messages: data.messages });
 	},
 	toggle_group_mode: function toggle_group_mode() {
 		console.log("App.toggle_group_mode()");
@@ -124,15 +135,19 @@ var App = _react2['default'].createClass({
 			}
 		});
 	},
-	handle_stage_message: function handle_stage_message() {
+
+	//
+	// Stage message is sent to the stage windows but not user windows
+	//
+	handle_stage_message_broadcast: function handle_stage_message_broadcast() {
 		// var password = location.hash.slice(location.hash.indexOf('#')+1);
-		console.log("App.handle_stage_message()");
+		console.log("App.handle_stage_message_broadcast()");
 		var password = this.state.password;
 
 		socket.emit('admin:command', {
 			password: password,
 			command: {
-				method: 'stage_message',
+				method: 'broadcast_stage_message',
 				value: this.message_to_stage.value
 			}
 		});
@@ -147,6 +162,32 @@ var App = _react2['default'].createClass({
 			item
 		);
 	},
+	handle_stage_messages_download: function handle_stage_messages_download() {
+		// var password = location.hash.slice(location.hash.indexOf('#')+1);
+		console.log("App.handle_stage_messages_download()");
+		var password = this.state.password;
+
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'download_stage_messages',
+				url: this.stage_messages_download_url.value
+			}
+		});
+	},
+	handle_stage_messages_get: function handle_stage_messages_get() {
+		// var password = location.hash.slice(location.hash.indexOf('#')+1);
+		console.log("App.handle_stage_messages_get()");
+		var password = this.state.password;
+
+		socket.emit('admin:command', {
+			password: password,
+			command: {
+				method: 'get_stage_messages'
+			}
+		});
+	},
+
 	change_password: function change_password(e) {
 		localStorage.password = e.target.value;
 		this.setState({ password: e.target.value });
@@ -336,7 +377,7 @@ var App = _react2['default'].createClass({
 							null,
 							_react2['default'].createElement(
 								'button',
-								{ onClick: this.handle_stage_message },
+								{ onClick: this.handle_stage_message_broadcast },
 								'To Stage'
 							)
 						),
@@ -363,7 +404,22 @@ var App = _react2['default'].createClass({
 							_react2['default'].createElement(
 								'button',
 								{ onClick: this.handle_stage_messages_download },
-								'update list'
+								'download list'
+							),
+							_react2['default'].createElement('br', null),
+							_react2['default'].createElement('input', {
+								type: 'text',
+								placeholder: 'url to download from',
+								defaultValue: 'https://pad.riseup.net/p/crowdwise/export/txt',
+								ref: function (i) {
+									return _this.stage_messages_download_url = i;
+								},
+								size: '30' }),
+							_react2['default'].createElement('br', null),
+							_react2['default'].createElement(
+								'button',
+								{ onClick: this.handle_stage_messages_get },
+								'get list'
 							)
 						)
 					),
@@ -820,7 +876,7 @@ _reactDom2['default'].render(_react2['default'].createElement(App, null), docume
               <option value="Java Java">Java Java</option>
               <option value="C++">C++</option> */
 
-},{"../config":2,"react":179,"react-dom":28}],2:[function(require,module,exports){
+},{"../config":2,"../stage_messages.json":180,"react":179,"react-dom":28}],2:[function(require,module,exports){
 'use strict';
 
 var config = {};
@@ -21328,4 +21384,13 @@ module.exports = traverseAllChildren;
 
 module.exports = require('./lib/React');
 
-},{"./lib/React":157}]},{},[1]);
+},{"./lib/React":157}],180:[function(require,module,exports){
+module.exports=[
+    "a",
+
+    "bb <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> <b> ",
+
+    "c"
+]
+
+},{}]},{},[1]);

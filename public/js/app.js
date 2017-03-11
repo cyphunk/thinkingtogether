@@ -99,16 +99,21 @@ var Writer = _react2['default'].createClass({
     handle_change: function handle_change(e) {
         debug_log('Writer handle_change - match .', e.target.value.match(/\. *$/g));
         if (e.target.value.length > config.writer.max_chars + 3) return;
-        this.props.handle_writer_signal_field_changed(e.target.value);
-        // the . match includes catch double space bar added periods from phones
-        if (config.writer.submit_on_linebreak && e.target.value[e.target.value.length - 1] == "\n" || config.writer.submit_on_period && e.target.value.match(/\. *$/g) !== null) {
-            debug_log("Writer handle_change - submit");
-            socket.emit('send:signal', {
-                user: this.props.user,
-                text: e.target.value.replace(/\n|\./g, '')
-            });
-        } else if (config.writer.send_live_input) {
-            //TODO
+
+        var submit = config.writer.send_live_input;
+
+        if (config.writer.submit_on_linebreak && e.target.value[e.target.value.length - 1] == "\n") {
+            submit = true;
+            e.target.value = e.target.value.replace(/\n/g, '');
+        }
+        if (config.writer.submit_on_period && e.target.value.match(/\. *$/g) !== null) {
+            submit = true;
+            e.target.value = e.target.value.replace(/\./g, '');
+        }
+
+        this.props.handle_writer_signal_field_changed(e.target.value, submit);
+
+        if (submit) {
             debug_log("Writer handle_change - to stage: " + e.target.value + ' code:' + e.keyCode);
             socket.emit('send:signal', {
                 user: this.props.user,
@@ -128,7 +133,12 @@ var Writer = _react2['default'].createClass({
 
         debug_log('text', this.props.signal);
         var submit_elem = null;
-        if (config.writer.show_submit_button) submit_elem = _react2['default'].createElement('input', { className: 'submit_button', type: 'submit', value: 'Submit' });
+        if (config.writer.show_submit_button) submit_elem = _react2['default'].createElement(
+            'div',
+            null,
+            _react2['default'].createElement('input', { className: 'submit_button', type: 'submit', value: 'Submit' }),
+            _react2['default'].createElement('br', null)
+        );
         return _react2['default'].createElement(
             'form',
             { onSubmit: this.handle_submit },
@@ -141,6 +151,12 @@ var Writer = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'td',
                         { colSpan: '2' },
+                        _react2['default'].createElement(
+                            'span',
+                            { className: 'user_name' },
+                            'You are ',
+                            this.props.user.name
+                        ),
                         _react2['default'].createElement(_reactTextareaAutosize2['default'], {
                             type: 'text',
                             placeholder: "Propose signal <" + config.writer.max_chars + " letters...",
@@ -160,18 +176,9 @@ var Writer = _react2['default'].createClass({
                     _react2['default'].createElement(
                         'td',
                         null,
-                        _react2['default'].createElement(
-                            'span',
-                            { className: 'user_name' },
-                            'You are ',
-                            this.props.user.name
-                        )
-                    ),
-                    _react2['default'].createElement(
-                        'td',
-                        null,
                         submit_elem
-                    )
+                    ),
+                    _react2['default'].createElement('td', null)
                 )
             )
         );
@@ -197,7 +204,8 @@ var Signal = _react2['default'].createClass({
         debug_log("on error check the html and per sure there are no spaces in your babel");
         // var value = this.refs.signalInput.getDOMNode().textContent;
         // remove . and \n from the new text. So that detection to change tab on . and \n works
-        this.props.update_state_signal(this.props.signal.text.replace(/\.|\n/g, ""));
+        //this.props.update_state_signal(this.props.signal.text.replace(/\.|\n/g,""));
+        this.props.update_state_signal(this.props.signal.text); //brussels but also .\n replaced downstream
     },
     render: function render() {
         return _react2['default'].createElement(
@@ -374,7 +382,7 @@ var Voter = _react2['default'].createClass({
                                 'button',
                                 { className: 'modify_button',
                                     onClick: function () {
-                                        return _this3.props.update_state_signal(signals[_this3.props.user.uid].text.replace(/\.|\n/g, ""));
+                                        return _this3.props.update_state_signal(signals[_this3.props.user.uid].text);
                                     } },
                                 ' '
                             )
@@ -624,7 +632,8 @@ var App = _react2['default'].createClass({
         debug_log("App.update_state_signal() - value:", value);
         // get rid of \n and .
         // set Writer value and change to Writer tab:
-        value = value.replace(/\n|\./g, '');
+        // if (config.submit_on_period || config.submit_on_linebreak)
+        //     value =  value.replace(/\n|\./g,'');
         localStorage.signal = value;
         this.setState({ signal: value, selected_tab: 0 });
     },
@@ -639,20 +648,20 @@ var App = _react2['default'].createClass({
         }
     },
     handle_writer_signal_field_changed: function handle_writer_signal_field_changed(value) {
+        var submit_called = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
         debug_log('App.handle_writer_signal_field_changed() - value', value);
         var _state3 = this.state;
         var user = _state3.user;
         var signals = _state3.signals;
         var voter_enabled = _state3.voter_enabled;
 
-        // on change if last char is . or \n change to voting tab
-        // catch common phone period after double space bar
-        if (voter_enabled) {
-            if (value.slice(-1) == "\n" || value.match(/\. *$/g) !== null) {
-                this.setState({ selected_tab: 1 });
-            }
+        if (config.submit_on_linebreak && value.slice(-1) == "\n" || config.submit_on_period && value.match(/\. *$/g) !== null) {
+            value = value.replace(/\n|\./g, '');
         }
-        value = value.replace(/\n|\./g, '');
+        if (submit_called && voter_enabled) {
+            this.setState({ selected_tab: 1 });
+        }
         signals[user.uid] = { user: user, text: value };
         this.setState({ signal: value, signals: signals });
     },
@@ -776,7 +785,7 @@ var App = _react2['default'].createClass({
 
             // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
             //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
-            if (signal.slice(-1) == "\n" || signal.match(/\. *$/g) !== null) {
+            if (config.submit_on_linebreak && signal.slice(-1) == "\n" || config.submit_on_period && signal.match(/\. *$/g) !== null) {
                 signal = signal.replace(/\n/g, '').replace(/\./g, '');
                 this.setState({ signal: signal });
             }
@@ -881,9 +890,14 @@ config.default_tab = 0; // 0=BRUSSELS. change to determine default tab 0 = write
 // if one of the submits is not selected and send_live_input is false then nothing
 // will show up in the voter. So one of the following 3 should be true, at least
 config.writer.send_live_input = false; // clients send as they type?
-config.writer.submit_on_linebreak = true;
-config.writer.submit_on_period = true;
-config.writer.max_chars = 140;
+// config.writer.submit_on_linebreak = true
+// config.writer.submit_on_period = true
+// config.writer.max_chars = 140
+// brussels:
+config.writer.submit_on_linebreak = false;
+config.writer.submit_on_period = false;
+config.writer.max_chars = 300;
+
 config.writer.show_submit_button = true; // true=BRUSSELS
 
 config.voter.show_joined_messages = false;

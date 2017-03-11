@@ -12,8 +12,9 @@ var password = process.env.ADMIN_PASSWORD || 'change_me'
 // when true clients only see other signals from their own group
 var group_mode = false
 var config = require('./config')
-var stage_messages_store = __dirname + '/stage_messages.txt'
+var stage_messages_store = __dirname + '/stage_messages.json'
 // just store signular epoch to be sent to clients and controlled via admin
+var https = require('https') // to download stage messages
 
 function debug_log() {
     if (config.debug)
@@ -519,49 +520,45 @@ var socket = function (socket) {
 		if (data.command.method == 'broadcast_message') {
 			socket.broadcast.emit('admin:command', data.command)
 		}
+
 		else
 		if (data.command.method == 'get_stage_messages') {
-		else {
-			fs.exists(stage_messages_store, function(exists) {
-				if (exists) {
-					console.log('loaded '+file);
-					// queue = require(file);
+			fs.exists(stage_messages_store, function(exists) { if (exists) {
 					fs.readFile(stage_messages_store, function (err, data) {
-						try {
-							var d = JSON.parse(data);
-							cache = d.cache;
-							key_list = d.key_list;
-						}catch(e){console.error(e)}
+						var d = []
+						try { d = JSON.parse(data) } catch (e) { consoel.log ('err',e) }
+						socket.emit('stage_messages', { messages: d })
+						debug_log('sent',d)
 					});
 				}
-			});
-			socket.emit('stage_messages', { messages: this.responseText })
-			fs.writeFile(stage_messages_store, string, function(err) {
-				if (err) console.log(stage_messages_store+' '+err);
-				else     console.log('saved '+file);
 			})
 		}
-		if (data.command.method == 'update_stage_messages') {
+		else
+		if (data.command.method == 'download_stage_messages') {
 			if (!data.command.url) return
-			var xmlHttp     = new XMLHttpRequest();
-			log('http_get','request',data.command.url);
-			xmlHttp.callback = function () {
-					socket.emit('stage_messages', { messages: this.responseText })
-			        fs.writeFile(__dirname + '/stage_messages.txt', string, function(err) {
-			            if (err) console.log(file+' '+err);
-			            else     console.log('saved '+file);
-			        })
-			}
-			xmlHttp.url = data.command.url;
-			xmlHttp.onload  = function (e) {
-				log('http_get','completed',e.target.responseURL);
-				this.callback(this.responseText);
-			}
-			xmlHttp.onerror = function (e) { console.log('error http_get',data.command.url,e) }
-			xmlHttp.open( "GET", data.command.url, true);
-			xmlHttp.send( null );
-
+			debug_log('http_get request',data.command.url);
+			https.get(data.command.url, function(res) {
+				var body = '';
+				res.on('data', function(d) { body += d })
+				res.on('end', function() {
+					fs.writeFile(stage_messages_store, body, function(err) {
+						if (err) console.log(stage_messages_store+' '+err);
+						else     debug_log('saved '+stage_messages_store+' size:'+body.length);
+					})
+					var d = []
+					try { d = JSON.parse(body) } catch (e) { consoel.log ('err',e) }
+					socket.emit('stage_messages', { messages: d });
+					debug_log('sent',d)
+				})
+			})
 		}
+		else
+		if (data.command.method == 'broadcast_stage_message') {
+			debug_log('stage message', data)
+			socket.broadcast.emit('admin:stagemessage', { message: data.command.value})
+		}
+
+
 		if (data.command.method == 'reset_session') {
 			users.reset()
 			signals.reset()

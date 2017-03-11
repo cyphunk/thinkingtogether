@@ -7,6 +7,8 @@ import ProgressBar from 'progressbar.js';
 var config = require('../config');
 var socket = io.connect();
 
+var broadcast_message_timer = null
+
 var progress_bar_a = null
 var progress_bar_b = null
 var App = React.createClass({
@@ -41,6 +43,7 @@ var App = React.createClass({
         socket.on('admin:command', this._admin_command);
 		socket.on('admin:stage', this._admin_stage);
 		socket.on('admin:stagestyle', this._admin_stage_style);
+		socket.on('admin:stagemessage', this._admin_stage_message);
 		socket.on('epoch:start', this._epoch_start);
 		socket.on('epoch:config', this._epoch_config);
 		socket.on('epoch:stop_progress', this._epoch_stop_progress);
@@ -130,6 +133,20 @@ var App = React.createClass({
 		container.style.paddingTop = style.paddingTop +'em'
         this.setState({ style });
     },
+	_admin_stage_message(data) {
+		console.log('App._admin_stage_message()');
+		console.log('App._admin_stage_message - data', data);
+		var message = data.message
+		if (broadcast_message_timer)
+			window.clearTimeout(broadcast_message_timer)
+		var elem = document.getElementById('broadcast_message')
+		elem.innerHTML = message;
+		elem.style.display = 'flex'
+		broadcast_message_timer = window.setTimeout(function(){
+			document.getElementById('broadcast_message').style.display='none'
+		}, 15000)
+
+	},
 	_epoch_start(new_progress) {
 		console.log('App.epoch_start()');
 		var {progress, epoch_timer, epoch, group_mode} =  this.state;
@@ -162,7 +179,18 @@ var App = React.createClass({
 				console.log('progress_bar_b finished')
 			});
 		}
+		// sound during seeding
+		if (config.epoch.sound_on_seeding) {
+			var sound = document.getElementById('epoch_seeding_sound')
 
+			if (sound.currentTime > config.epoch.sound_on_seeding_subtract_each_play+1)
+				sound.currentTime = sound.currentTime - config.epoch.sound_on_seeding_subtract_each_play
+			sound.play()
+			window.setTimeout(function(){
+				console.log('stop seeding sound')
+				document.getElementById('epoch_seeding_sound').pause()
+			},(progress.intervalTime*100)) // -100 so other sound has time to spin up
+		}
   	},
 	_epoch_config(data) {
 		console.log('App._epoch_config() - data', data);
@@ -186,7 +214,9 @@ var App = React.createClass({
 			intervalTime: 0
 		}
 		this.setState({ progress })
-
+		// sound during seeding
+		if (config.epoch.sound_on_seeding)
+			document.getElementById('epoch_seeding_sound').pause()
 	},
 	_epoch_active_signals(new_active_signals) {
 		console.log('App._epoch_active_signals()');
@@ -361,7 +391,9 @@ var App = React.createClass({
             return (
                 <div className="signals">
                 {signal_group_a}
-				<audio ref="epoch_sound" id="epoch_sound"  src="/beep.mp3"  autoPlay="false" />
+				<audio ref="epoch_sound" id="epoch_sound" src={config.epoch.sound_on_signal_chosen_uri}   />
+				<audio ref="epoch_seeding_sound" id="epoch_seeding_sound" src={config.epoch.sound_on_seeding_uri} loop />
+				<div id="broadcast_message" style={{display: "none"}}></div>
 				</div>
 			);
         }
@@ -385,7 +417,9 @@ var App = React.createClass({
 					<div className={groupBClass}>
 	                	{signal_group_b}
 	                </div>
-					<audio ref="epoch_sound" id="epoch_sound" src="/beep.mp3"  autoPlay="false" />
+					<audio ref="epoch_sound" id="epoch_sound" src={config.epoch.sound_on_signal_chosen_uri}  />
+					<audio ref="epoch_seeding_sound" id="epoch_seeding_sound" src={config.epoch.sound_on_seeding_uri}  loop />
+					<div id="broadcast_message" style={{display: "none"}}></div>
 				</div>
 			);
 
