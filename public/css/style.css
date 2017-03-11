@@ -10,7 +10,7 @@ body {
 }
 table {
 /*width: 100%; // brussels*/
-min-width: 40%;
+/*min-width: 40%;*/
 }
 h3 {
     padding: 0 5%;
@@ -37,7 +37,7 @@ input, textarea {
     font-family: inherit;
     color: inherit;
     padding: 0.4em;
-    margin: 1em 0em 1.6em 0em;
+    margin: 1em 0em 1.4em 0em;
     width: 95%;
 }
 .submit_button {
