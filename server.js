@@ -526,7 +526,7 @@ var socket = function (socket) {
 			fs.exists(stage_messages_store, function(exists) { if (exists) {
 					fs.readFile(stage_messages_store, function (err, data) {
 						var d = []
-						try { d = JSON.parse(data) } catch (e) { consoel.log ('err',e) }
+						try { d = JSON.parse(data) } catch (e) { console.log ('err',e) }
 						socket.emit('stage_messages', { messages: d })
 						debug_log('sent',d)
 					});
