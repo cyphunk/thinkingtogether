@@ -12,13 +12,9 @@ var password = process.env.ADMIN_PASSWORD || 'change_me'
 // when true clients only see other signals from their own group
 var group_mode = false
 var config = require('./config')
-<<<<<<< HEAD
-// just store signular epoch to be sent to clients and controlled via admin
-=======
 var stage_messages_store = __dirname + '/stage_messages.json'
 // just store signular epoch to be sent to clients and controlled via admin
 var https = require('https') // to download stage messages
->>>>>>> 0.2.0-brussels
 
 function debug_log() {
     if (config.debug)
@@ -524,9 +520,6 @@ var socket = function (socket) {
 		if (data.command.method == 'broadcast_message') {
 			socket.broadcast.emit('admin:command', data.command)
 		}
-<<<<<<< HEAD
-		else
-=======
 
 		else
 		if (data.command.method == 'get_stage_messages') {
@@ -566,7 +559,6 @@ var socket = function (socket) {
 		}
 
 
->>>>>>> 0.2.0-brussels
 		if (data.command.method == 'reset_session') {
 			users.reset()
 			signals.reset()
