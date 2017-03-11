@@ -38,7 +38,7 @@ config.voter.enabled = false // false=BRUSSELS. if false the vote tab isnt shown
 
 config.stage.show_signal_activity = true  // false means only the current signal is shown
 config.stage.show_vote_count = false
-config.stage.show_n_signals = 10 // if you want all of them, idk, set to 9999
+config.stage.show_n_signals = 10 // if you want all of them, idk, set to 9999 
 // for stage and voter:
 // on bang signals state will be cleared
 config.stage.group_side_by_side = true; // adds float left css
