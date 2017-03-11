@@ -350,7 +350,7 @@ var App = React.createClass({
 							<td><span>Clear votes on each epoch</span></td>
 						</tr><tr>
 							<td><input type="checkbox"
-									 defaultChecked={this.state.config.epoch.clear_signals_on_epoch}
+								 defaultChecked={this.state.config.epoch.clear_signals_on_epoch}
 								 ref={(i) => this.clear_signals_on_epoch = i}
 							     onChange={this.handle_epoch_submit} /></td>
 							<td><span>Clear signals on each epoch</span></td>
