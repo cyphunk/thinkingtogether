@@ -52,7 +52,7 @@ body {
 }
 .signal .user_name {
     font-size: 0.5em;
-    opacity: 0.2;
+    opacity: 0.4;
     margin-left: 1em;
 }
 .signals .signal {
@@ -498,4 +498,19 @@ border-color: transparent transparent transparent #99f;
   /* remove webkit p margins */
   -webkit-margin-before: 0em;
   -webkit-margin-after: 0em;
+}
+
+
+#broadcast_message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    font-size: 2em;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    background-color: #333;
+    transition: display 0.5s ease-in-out;
+    align-items: center;
+    padding: 0.2em;
 }

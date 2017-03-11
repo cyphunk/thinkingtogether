@@ -12,7 +12,9 @@ var password = process.env.ADMIN_PASSWORD || 'change_me'
 // when true clients only see other signals from their own group
 var group_mode = false
 var config = require('./config')
+var stage_messages_store = __dirname + '/stage_messages.json'
 // just store signular epoch to be sent to clients and controlled via admin
+var https = require('https') // to download stage messages
 
 function debug_log() {
     if (config.debug)
@@ -518,7 +520,45 @@ var socket = function (socket) {
 		if (data.command.method == 'broadcast_message') {
 			socket.broadcast.emit('admin:command', data.command)
 		}
+
 		else
+		if (data.command.method == 'get_stage_messages') {
+			fs.exists(stage_messages_store, function(exists) { if (exists) {
+					fs.readFile(stage_messages_store, function (err, data) {
+						var d = []
+						try { d = JSON.parse(data) } catch (e) { consoel.log ('err',e) }
+						socket.emit('stage_messages', { messages: d })
+						debug_log('sent',d)
+					});
+				}
+			})
+		}
+		else
+		if (data.command.method == 'download_stage_messages') {
+			if (!data.command.url) return
+			debug_log('http_get request',data.command.url);
+			https.get(data.command.url, function(res) {
+				var body = '';
+				res.on('data', function(d) { body += d })
+				res.on('end', function() {
+					fs.writeFile(stage_messages_store, body, function(err) {
+						if (err) console.log(stage_messages_store+' '+err);
+						else     debug_log('saved '+stage_messages_store+' size:'+body.length);
+					})
+					var d = []
+					try { d = JSON.parse(body) } catch (e) { consoel.log ('err',e) }
+					socket.emit('stage_messages', { messages: d });
+					debug_log('sent',d)
+				})
+			})
+		}
+		else
+		if (data.command.method == 'broadcast_stage_message') {
+			debug_log('stage message', data)
+			socket.broadcast.emit('admin:stagemessage', { message: data.command.value})
+		}
+
+
 		if (data.command.method == 'reset_session') {
 			users.reset()
 			signals.reset()

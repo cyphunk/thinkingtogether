@@ -51,9 +51,15 @@ var signal_order_timer = null // started on start and
 
 // if we have a previous uid send it. uid's are unique and only valid per session
 debug_log("localStorage.uid = ", localStorage.uid)
+var admin_voter_tab_reenable=false; // a way for admin to have clients that allow voting regardless on config.voter.enable setting
 var using_hash_uid=false; // turn on with hash
 if (window.location.hash.length > 1) {
-    var socket = io.connect({query: 'uid='+window.location.hash.substr(1)});
+    var hash = location.hash
+    if (hash.indexOf('voter') >=0 ) {
+        admin_voter_tab_reenable = true
+        hash = hash.replace('voter', '')
+    }
+    var socket = io.connect({query: 'uid='+hash.substr(1)});
     using_hash_uid = true;
 }
 else if (localStorage.uid) {
@@ -78,25 +84,27 @@ var Writer = React.createClass({
     handle_change(e) {
         debug_log('Writer handle_change - match .', e.target.value.match(/\. *$/g))
         if (e.target.value.length>config.writer.max_chars+3) return;
-        this.props.handle_writer_signal_field_changed(e.target.value);
-        // the . match includes catch double space bar added periods from phones
-        if (( config.writer.submit_on_linebreak &&
-              e.target.value[e.target.value.length-1] == "\n") ||
-            ( config.writer.submit_on_period &&
-              e.target.value.match(/\. *$/g) !== null) ) {
-            debug_log("Writer handle_change - submit");
-            socket.emit('send:signal', {
-                user : this.props.user,
-                text : e.target.value.replace(/\n|\./g, '')
-            });
+
+        var submit = config.writer.send_live_input
+
+        if (config.writer.submit_on_linebreak && e.target.value[e.target.value.length-1] == "\n") {
+            submit = true
+            e.target.value = e.target.value.replace(/\n/g, '')
         }
-        else if (config.writer.send_live_input) {
-            //TODO
+        if (config.writer.submit_on_period && e.target.value.match(/\. *$/g) !== null) {
+            submit = true
+            e.target.value = e.target.value.replace(/\./g, '')
+        }
+
+        this.props.handle_writer_signal_field_changed(e.target.value, submit);
+
+        if (submit) {
             debug_log("Writer handle_change - to stage: "+e.target.value+' code:'+e.keyCode);
             socket.emit('send:signal', {
                 user : this.props.user,
                 text : e.target.value
             });
+
         }
         //Supposedly pressing enter in text input calls the forms submit
         // so we do not need to call this.handle_submit on enter
@@ -110,10 +118,11 @@ var Writer = React.createClass({
         debug_log('text',this.props.signal)
         var submit_elem = null
         if (config.writer.show_submit_button)
-            submit_elem = <input className="submit_button" type="submit" value="Submit"/>
+            submit_elem = <div><input className="submit_button" type="submit" value="Submit" /><br /></div>
         return (
             <form onSubmit={this.handle_submit} >
             <table className="writer_table"><tr><td colSpan="2">
+                <span className="user_name">You are {this.props.user.name}</span>
                 <Textarea
                     type="text"
                     placeholder={"Propose signal <"+config.writer.max_chars+" letters..."}
@@ -125,8 +134,9 @@ var Writer = React.createClass({
                 >
                 </Textarea>
                 </td></tr><tr><td>
-                <span className="user_name">You are {this.props.user.name}</span></td><td>
-                {submit_elem}</td></tr></table>
+                {submit_elem}
+                </td><td>
+                </td></tr></table>
             </form>
         );
     },
@@ -151,7 +161,8 @@ var Signal = React.createClass({
         debug_log("on error check the html and per sure there are no spaces in your babel");
         // var value = this.refs.signalInput.getDOMNode().textContent;
         // remove . and \n from the new text. So that detection to change tab on . and \n works
-        this.props.update_state_signal(this.props.signal.text.replace(/\.|\n/g,""));
+        //this.props.update_state_signal(this.props.signal.text.replace(/\.|\n/g,""));
+        this.props.update_state_signal(this.props.signal.text); //brussels but also .\n replaced downstream
     },
 	render() {
 		return (
@@ -306,7 +317,7 @@ var Voter = React.createClass({
             my_signal = <div className='signal my_signal'>
                     <table><tbody><td>
                             <button    className="modify_button"
-                                       onClick={() => this.props.update_state_signal(signals[this.props.user.uid].text.replace(/\.|\n/g,""))}>&nbsp;</button>
+                                       onClick={() => this.props.update_state_signal(signals[this.props.user.uid].text)}>&nbsp;</button>
                            </td><td>
             				<span className="signal_text">{signals[this.props.user.uid].text}</span>
                             <button    className="vote_button"
@@ -394,7 +405,8 @@ var App = React.createClass({
                 signals:{}, signal: '',
                 votes: {}, group_mode: false,
                 epoch: config.epoch,
-                selected_tab: config.default_tab ? config.default_tab : 0 };
+                selected_tab: config.default_tab ? config.default_tab : 0,
+                voter_enabled: admin_voter_tab_reenable ? true : config.voter.enabled };
 	},
 
 	componentDidMount() {
@@ -412,17 +424,18 @@ var App = React.createClass({
     },
 	_initialize(data) {
         debug_log('App._initialize() - data', data);
-		var {users, user, signals, votes, group_mode, epoch, config} = data;
-        config = config;
+		var {users, user, signals, votes, group_mode, epoch} = data;
+        config = data.config;
         // save uid in case accidental browser refreshed
         localStorage.uid = user.uid
         if (using_hash_uid)
-            window.location.hash=user.uid
+            window.location.hash=user.uid + (admin_voter_tab_reenable?"voter":"")
         if (signals[user.uid])
             var signal = signals[user.uid].text;
         else
             var signal = '';
-		this.setState({users, user: user, signals, signal, votes, group_mode, epoch});
+		this.setState({users, user: user, signals, signal, votes, group_mode, epoch,
+            voter_enabled: admin_voter_tab_reenable ? true : config.voter.enabled});
         //debug_log('App._initialize() - data.handshake', data.handshake);
         this.signal_order_loop()
 	},
@@ -511,9 +524,11 @@ var App = React.createClass({
         debug_log("App.update_state_signal() - value:", value);
         // get rid of \n and .
         // set Writer value and change to Writer tab:
-        value =  value.replace(/\n|\./g,'');
+        // if (config.submit_on_period || config.submit_on_linebreak)
+        //     value =  value.replace(/\n|\./g,'');
         localStorage.signal = value
         this.setState({ signal: value, selected_tab: 0 });
+
     },
     update_state_vote(voter_uid, signal_uid) {
         debug_log("App.update_state_votes() - votes:", votes);
@@ -524,15 +539,15 @@ var App = React.createClass({
             this.setState({ votes });
         }
     },
-    handle_writer_signal_field_changed(value) {
+    handle_writer_signal_field_changed(value, submit_called = false) {
         debug_log('App.handle_writer_signal_field_changed() - value', value);
-        var {user, signals} = this.state;
-        // on change if last char is . or \n change to voting tab
-        // catch common phone period after double space bar
-        if (value.slice(-1) == "\n" || value.match(/\. *$/g) !== null) {
+        var {user, signals, voter_enabled} = this.state;
+        if (  (config.submit_on_linebreak && value.slice(-1) == "\n") || (config.submit_on_period && value.match(/\. *$/g) !== null)  ) {
+            value =  value.replace(/\n|\./g,'');
+        }
+        if (submit_called && voter_enabled) {
             this.setState({selected_tab: 1})
         }
-        value =  value.replace(/\n|\./g,'');
         signals[user.uid] = {user: user, text: value};
         this.setState({ signal: value, signals});
     },
@@ -554,6 +569,15 @@ var App = React.createClass({
         else
         if (command.method == 'set_config') {
             config = command.value
+            this.setState({selected_tab: 0})
+            // make sure write tab is shown if voter not enabled
+            if (!config.voter.enabled && !admin_voter_tab_reenable) {
+                this.setState({voter_enabled: config.voter.enabled,
+                               selected_tab: 0})
+            }
+            else {
+                this.setState({voter_enabled: config.voter.enabled})
+            }
         }
         else
         if (command.method == 'reload_page') {
@@ -660,7 +684,7 @@ var App = React.createClass({
             var {signal, signals} = this.state;
             // if (signals[user.uid].text.slice(-1) == "\n" || signals[user.uid].text.match(/\. *$/g) !== null) {
             //     signals[user.uid].text.replace(/\n/g).replace(/\./g);
-            if (signal.slice(-1) == "\n" || signal.match(/\. *$/g) !== null) {
+            if ( (config.submit_on_linebreak && signal.slice(-1) == "\n") || (config.submit_on_period && signal.match(/\. *$/g) !== null)) {
                 signal = signal.replace(/\n/g,'').replace(/\./g,'');
                     this.setState({signal});
             }
@@ -677,6 +701,19 @@ var App = React.createClass({
         else {
             document.body.className = '';
         }
+        var voter_tab = null
+        if (this.state.voter_enabled) {
+            // voter_tab = <TabPanel>
+            //                         <Voter
+            //                             user={this.state.user}
+            //                             votes={this.state.votes}
+            //                             signals={this.state.signals}
+            //                             update_state_signal={this.update_state_signal}
+            //                             update_state_vote={this.update_state_vote}
+            //                             group_mode={this.state.group_mode} />
+            //                     </TabPanel>;
+            voter_tab = <Tab>Vote</Tab>;
+        }
 		return (
 			<div className={divClass}>
                 {/* <Tabs selectedIndex={this.state.selected_tab}
@@ -685,7 +722,7 @@ var App = React.createClass({
                         onSelect={this.on_tab_select} >
     				<TabList>
     					<Tab>Write</Tab>
-    					<Tab>Vote</Tab>
+                        {voter_tab}
     				</TabList>
                     <TabPanel>
                         <Writer
