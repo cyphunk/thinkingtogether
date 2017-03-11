@@ -9,7 +9,7 @@ body {
     padding: 0;
 }
 table {
-_width: 100%
+width: 100%; // brussels
 }
 h3 {
     padding: 0 5%;
@@ -41,6 +41,7 @@ input, textarea {
 }
 .submit_button {
     margin: 0em 0em 0.6em 0em;
+    width: 100%;
 }
 .writer_table td:nth-child(1) span {
     display:block;
@@ -77,6 +78,8 @@ span, a, button {
 .signal {
     padding: 0.2em 0.2em 0.3em 0.3em;
     cursor: pointer;
+    /* dirty way to deal with render bug whereby many singals are written over top of each other*/
+    background-color: #333;
 }
 button.vote_button {
     background: url('/img/like_white_sm_26.png') no-repeat 0px center;

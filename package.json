@@ -1,10 +1,10 @@
 {
-  "name": "thinking-together",
-  "version": "0.1.0",
+  "name": "crowdwise",
+  "version": "0.2.0-brussels",
   "private": true,
   "scripts": {
     "build_app": "browserify ./client/app.jsx -t babelify --outfile ./public/js/app.js",
-    "build_admin": "browserify ./client/admin.jsx -t babelify --outfile ./public/js/admin.js | uglifyjs -c",
+    "build_admin": "browserify ./client/admin.jsx -t babelify --outfile ./public/js/admin.js",
     "build_stage": "browserify ./client/stage.jsx -t babelify --outfile ./public/js/stage.js",
     "start": "node server.js",
     "comp_app": "browserify ./client/app.jsx -t babelify -g uglifyify  | uglifyjs -c > ./public/js/app.js",
