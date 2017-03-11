@@ -507,6 +507,7 @@ border-color: transparent transparent transparent #99f;
     left: 0;
     font-size: 1.8em;
     width: 100%;
+    flex-direction: column;
     height: 100%;
     text-align: center;
     background-color: #000;
