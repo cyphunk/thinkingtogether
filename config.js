@@ -43,6 +43,7 @@ config.stage.show_n_signals = 10 // if you want all of them, idk, set to 9999
 // on bang signals state will be cleared
 config.stage.group_side_by_side = true; // adds float left css
 config.stage.show_in_chat_bubbles = false; // adds chatbubble css
+config.stage.show_message_for_n_sec = 30;
 
 config.epoch.wait_for_bang_to_start = true  // false then just go
 config.epoch.seed_length = 15  // time to vote

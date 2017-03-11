@@ -144,7 +144,7 @@ var App = React.createClass({
 		elem.style.display = 'flex'
 		broadcast_message_timer = window.setTimeout(function(){
 			document.getElementById('broadcast_message').style.display='none'
-		}, 15000)
+		}, config.stage.show_message_for_n_sec*1000)
 
 	},
 	_epoch_start(new_progress) {
