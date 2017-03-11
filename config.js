@@ -47,7 +47,7 @@ config.stage.show_message_for_n_sec = 30;
 
 config.epoch.wait_for_bang_to_start = true  // false then just go
 config.epoch.seed_length = 15  // time to vote
-config.epoch.pause_length = 2  // time before voter faded in 
+config.epoch.pause_length = 2  // time before voter faded in
 config.epoch.pause_forced = false  // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false    // if false forces admin bang.
@@ -61,7 +61,8 @@ config.epoch.sound_on_signal_chosen_uri = '/beep.mp3' // in public dir
 config.epoch.sound_on_seeding = true //BRUSSELS. play sound during seeding phase
 //config.epoch.sound_on_seeding_uri = '/countdown.mp3' // in public dir
 //config.epoch.sound_on_seeding_uri = '/familyfeud.mp3'  // in public dir
-config.epoch.sound_on_seeding_uri = '/johnroberts.mp3'  // in public dir
+//config.epoch.sound_on_seeding_uri = '/johnroberts.mp3'  // in public dir
+config.epoch.sound_on_seeding_uri = '/icydemons.mp3'  // in public dir
 config.epoch.sound_on_seeding_subtract_each_play = 5.0 // - ms from currentTime position. It's a nice effect if wave is long. 0 other wise
 
 module.exports = config
