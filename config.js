@@ -50,7 +50,7 @@ config.epoch.seed_length = 15  // time to vote
 config.epoch.pause_length = 2  // time before voter faded in
 config.epoch.pause_forced = false  // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
-config.epoch.start_new_epoch_after_pause = true   // if false forces admin bang.
+config.epoch.start_new_epoch_after_pause = false   // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true  // if true then whoever wens an epoch will be switched to the writer tab in their ui
 config.epoch.delete_winner = true
 config.epoch.require_min_votes = 0 // 0=BRUSSELS. set to 0 for no limit
