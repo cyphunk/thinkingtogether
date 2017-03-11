@@ -55,7 +55,7 @@ config.epoch.winner_switches_to_write_tab = true  // if true then whoever wens a
 config.epoch.delete_winner = true
 config.epoch.require_min_votes = 0 // 0=BRUSSELS. set to 0 for no limit
 config.epoch.clear_votes_on_epoch = true
-config.epoch.clear_signals_on_epoch = true
+config.epoch.clear_signals_on_epoch = false // false=BRUSSELS
 config.epoch.sound_on_signal_chosen = true // beep on send of epoch
 config.epoch.sound_on_signal_chosen_uri = '/beep.mp3' // in public dir
 config.epoch.sound_on_seeding = true //BRUSSELS. play sound during seeding phase
