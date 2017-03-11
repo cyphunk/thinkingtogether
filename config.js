@@ -38,7 +38,7 @@ config.voter.enabled = false // false=BRUSSELS. if false the vote tab isnt shown
 
 config.stage.show_signal_activity = true  // false means only the current signal is shown
 config.stage.show_vote_count = false
-config.stage.show_n_signals = 10 // if you want all of them, idk, set to 9999 
+config.stage.show_n_signals = 10 // if you want all of them, idk, set to 9999
 // for stage and voter:
 // on bang signals state will be cleared
 config.stage.group_side_by_side = true; // adds float left css
@@ -47,7 +47,7 @@ config.stage.show_message_for_n_sec = 30;
 
 config.epoch.wait_for_bang_to_start = true  // false then just go
 config.epoch.seed_length = 15  // time to vote
-config.epoch.pause_length = 2  // time before voter faded in
+config.epoch.pause_length = 2  // time before voter faded in 
 config.epoch.pause_forced = false  // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
 config.epoch.start_new_epoch_after_pause = false    // if false forces admin bang.
