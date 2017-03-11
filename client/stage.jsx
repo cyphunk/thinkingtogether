@@ -141,7 +141,7 @@ var App = React.createClass({
 			window.clearTimeout(broadcast_message_timer)
 		var elem = document.getElementById('broadcast_message')
 		elem.innerHTML = message;
-		elem.style.display = 'block' //flex
+		elem.style.display = 'flex' //flex
 		broadcast_message_timer = window.setTimeout(function(){
 			document.getElementById('broadcast_message').style.display='none'
 		}, config.stage.show_message_for_n_sec*1000)
