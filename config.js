@@ -59,7 +59,8 @@ config.epoch.clear_signals_on_epoch = false; // false=BRUSSELS
 config.epoch.sound_on_signal_chosen = true // beep on send of epoch
 config.epoch.sound_on_signal_chosen_uri = '/beep.mp3' // in public dir
 config.epoch.sound_on_seeding = true //BRUSSELS. play sound during seeding phase
-config.epoch.sound_on_seeding_uri = '/countdown.mp3' // in public dir
+//config.epoch.sound_on_seeding_uri = '/countdown.mp3' // in public dir
+config.epoch.sound_on_seeding_uri = '/familyfeud.mp3' // in public dir
 config.epoch.sound_on_seeding_subtract_each_play = 5.0 // - ms from currentTime position. It's a nice effect if wave is long. 0 other wise
 
 module.exports = config
