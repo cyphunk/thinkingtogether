@@ -10,6 +10,7 @@ body {
 }
 table {
 /*width: 100%; // brussels*/
+min-width: 50%;
 }
 h3 {
     padding: 0 5%;
