@@ -189,7 +189,7 @@ var App = React.createClass({
 			window.setTimeout(function(){
 				console.log('stop seeding sound')
 				document.getElementById('epoch_seeding_sound').pause()
-			},(progress.intervalTime*100)) // -100 so other sound has time to spin up
+			},(progress.intervalTime*100)+1000) // -100 so other sound has time to spin up
 		}
   	},
 	_epoch_config(data) {
