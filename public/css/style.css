@@ -10,7 +10,7 @@ body {
 }
 table {
 /*width: 100%; // brussels*/
-/*min-width: 40%;*/
+min-width: 40%;
 }
 h3 {
     padding: 0 5%;
@@ -182,6 +182,7 @@ body.signals_group_b {
 }
 
 #broadcast_message {
+    width: 60%;
     position: fixed;
     top: 0;
     left: 0;
