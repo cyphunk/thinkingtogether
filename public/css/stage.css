@@ -506,7 +506,7 @@ border-color: transparent transparent transparent #99f;
     top: 0;
     left: 0;
     font-size: 1.8em;
-    /*width: 100%;*/
+    min-width: 90%;
     flex-direction: row;
     height: 100%;
     text-align: center;
