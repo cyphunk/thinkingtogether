@@ -512,5 +512,5 @@ border-color: transparent transparent transparent #99f;
     background-color: #333;
     transition: display 0.5s ease-in-out;
     align-items: center;
-    padding: 0.2em;
+    padding: 0.2em 1em;
 }
