@@ -81,7 +81,7 @@ var Writer = React.createClass({
             text : this.props.signal //.replace(/\n|\./g,'')
         });
         // thank you message
-        var message = "<br>thank you<br><br><div style='font-size:0.6em'>you can change your message at any time</div>"
+        var message = "<br><small>thank you</small><br><div style='font-size:0.5em'>you can change your message at any time</div>"
         if (broadcast_message_timer)
             window.clearTimeout(broadcast_message_timer)
         var elem = document.getElementById('broadcast_message')
@@ -728,6 +728,29 @@ var App = React.createClass({
 			<div className={divClass}>
                 {/* <Tabs selectedIndex={this.state.selected_tab}
                       onSelect={selected_tab => this.setState({ selected_tab })} > */}
+                  <Tabs selectedIndex={this.state.selected_tab}
+                        onSelect={this.on_tab_select} >
+    				<TabList>
+    					<Tab>Write</Tab>
+                        {voter_tab}
+    				</TabList>
+                    <TabPanel>
+                        <Writer
+                            user={this.state.user}
+                            signal={this.state.signal}
+                            handle_writer_signal_field_changed={this.handle_writer_signal_field_changed} />
+                        {/* <span className="userUID">({this.state.user.uid})</span> */}
+                    </TabPanel>
+                    <TabPanel>
+                        <Voter
+                            user={this.state.user}
+                            votes={this.state.votes}
+                            signals={this.state.signals}
+                            update_state_signal={this.update_state_signal}
+                            update_state_vote={this.update_state_vote}
+                            group_mode={this.state.group_mode} />
+                    </TabPanel>
+                </Tabs>
                 <div id="broadcast_message" style={{display: "none"}}></div>
 			</div>
 		);
