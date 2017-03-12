@@ -10,7 +10,7 @@ body {
 }
 table {
 /*width: 100%; // brussels*/
-/*min-width: 40%;*/
+min-width: 40%;
 }
 h3 {
     padding: 0 5%;
@@ -27,8 +27,8 @@ a {
 /*extend border on bottom*/
 border-bottom: 2px solid #fff;
 /*width: 100%;*/
-margin-left: -10%;
-padding-left: 10%;
+/*margin-left: -10%;
+padding-left: 10%;*/
 }
 input, textarea {
     background-color: rgba(0, 0, 0, 0.5);
