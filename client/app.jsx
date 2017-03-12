@@ -104,6 +104,16 @@ var Writer = React.createClass({
                 user : this.props.user,
                 text : e.target.value
             });
+            // thank you message
+            var message = "submitted<br><br><div style='font-size:0.8em'>you can change your message at any time</div>"
+            if (broadcast_message_timer)
+                window.clearTimeout(broadcast_message_timer)
+            var elem = document.getElementById('broadcast_message')
+            elem.innerHTML = message;
+            elem.style.display = 'flex'
+            broadcast_message_timer = window.setTimeout(function(){
+                document.getElementById('broadcast_message').style.display='none'
+            }, 4000)
 
         }
         //Supposedly pressing enter in text input calls the forms submit
