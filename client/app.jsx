@@ -81,7 +81,7 @@ var Writer = React.createClass({
             text : this.props.signal //.replace(/\n|\./g,'')
         });
         // thank you message
-        var message = "<br><br>submitted<br><br><div style='font-size:0.8em'>you can change your message at any time</div>"
+        var message = "<br>thank you<br><br><div style='font-size:0.6em'>you can change your message at any time</div>"
         if (broadcast_message_timer)
             window.clearTimeout(broadcast_message_timer)
         var elem = document.getElementById('broadcast_message')
