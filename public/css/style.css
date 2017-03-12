@@ -182,12 +182,11 @@ body.signals_group_b {
 }
 
 #broadcast_message {
-    width: 60%;
     position: fixed;
     top: 0;
     left: 0;
     font-size: 3em;
-    width: 100%;
+    /*width: 100%;*/
     height: 100%;
     text-align: center;
     background-color: #333;
