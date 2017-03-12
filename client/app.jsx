@@ -734,11 +734,11 @@ var App = React.createClass({
     					<Tab>Write</Tab>
                         {voter_tab}
     				</TabList>
-                    <TabPanel>
+                    <TabPanel>{/*
                         <Writer
                             user={this.state.user}
                             signal={this.state.signal}
-                            handle_writer_signal_field_changed={this.handle_writer_signal_field_changed} />
+                            handle_writer_signal_field_changed={this.handle_writer_signal_field_changed} />*/}
                         {/* <span className="userUID">({this.state.user.uid})</span> */}
                     </TabPanel>
                     <TabPanel>

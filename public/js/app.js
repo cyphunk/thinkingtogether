@@ -848,14 +848,7 @@ var App = _react2['default'].createClass({
                     ),
                     voter_tab
                 ),
-                _react2['default'].createElement(
-                    _reactTabs.TabPanel,
-                    null,
-                    _react2['default'].createElement(Writer, {
-                        user: this.state.user,
-                        signal: this.state.signal,
-                        handle_writer_signal_field_changed: this.handle_writer_signal_field_changed })
-                ),
+                _react2['default'].createElement(_reactTabs.TabPanel, null),
                 _react2['default'].createElement(
                     _reactTabs.TabPanel,
                     null,
@@ -878,7 +871,11 @@ _reactDom2['default'].render(_react2['default'].createElement(App, null), docume
 /* <span className="vote_count">{this.props.signal.vote_count}</span> */ /* <span className="UID"
                                                                               ref="UID">{this.props.signal.user.uid}</span> */ /* <span className="user_name"
                                                                                                                                     onClick={this.handle_vote}>({this.props.signal.user.name})</span> */ /* <Tabs selectedIndex={this.state.selected_tab}
-                                                                                                                                                                                                              onSelect={selected_tab => this.setState({ selected_tab })} > */ /* <span className="userUID">({this.state.user.uid})</span> */
+                                                                                                                                                                                                              onSelect={selected_tab => this.setState({ selected_tab })} > */ /*
+                                                                                                                                                                                                                                                                              <Writer
+                                                                                                                                                                                                                                                                              user={this.state.user}
+                                                                                                                                                                                                                                                                              signal={this.state.signal}
+                                                                                                                                                                                                                                                                              handle_writer_signal_field_changed={this.handle_writer_signal_field_changed} />*/ /* <span className="userUID">({this.state.user.uid})</span> */
 
 },{"../config.js":2,"react":199,"react-dom":30,"react-flip-move":162,"react-tabs":172,"react-textarea-autosize":173}],2:[function(require,module,exports){
 'use strict';
