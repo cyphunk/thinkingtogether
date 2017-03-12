@@ -27,8 +27,8 @@ a {
 /*extend border on bottom*/
 border-bottom: 2px solid #fff;
 width: 100%;
-margin-left: -50%;
-padding-left: 50%;
+margin-left: -10%;
+padding-left: 10%;
 }
 input, textarea {
     background-color: rgba(0, 0, 0, 0.5);
