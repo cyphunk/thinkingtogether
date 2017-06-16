@@ -59,7 +59,7 @@ config.epoch.b = {}
 config.epoch.b.wait_for_bang_to_start = config.epoch.a.wait_for_bang_to_start
 config.epoch.b.seed_length = config.epoch.a.seed_length
 config.epoch.b.pause_length = config.epoch.a.pause_length
-config.epoch.b.start_new_epoch_after_pause = false    // if false forces admin bang.
+config.epoch.b.start_new_epoch_after_pause = config.epoch.a.start_new_epoch_after_pause
 
 config.epoch.pause_forced = false  // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
