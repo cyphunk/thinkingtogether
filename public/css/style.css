@@ -80,7 +80,7 @@ span, a, button {
     padding: 0.2em 0.2em 0.3em 0.3em;
     cursor: pointer;
     /* dirty way to deal with render bug whereby many singals are written over top of each other*/
-    background-color: #333;
+    _background-color: #333;
 }
 button.vote_button {
     background: url('/img/like_white_sm_26.png') no-repeat 0px center;

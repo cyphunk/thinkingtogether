@@ -205,6 +205,7 @@ var Signal = React.createClass({
 
 // attempt at fixing the glitchy update issue? FRASCATI2
 var voter_update_last_timestamp = 0;
+var voter_current_keys;
 
 var Voter = React.createClass({
     add_vote_count_to_signals(keys) {
@@ -330,10 +331,14 @@ var Voter = React.createClass({
                 var keys = this.set_signal_order(key_groups[this.props.user.gid]);
             else
                 var keys = this.set_signal_order(key_groups.a);
+            voter_current_keys = keys;
             voter_update_last_timestamp = now;
         }
         else {
-            var keys = signal_keys;
+            // return
+            // a simple return would fix the update glitch but at the cost of not allowing
+            // the signal text of the currently shown signals to be updated dynamically, which would be a pitty
+            keys = voter_current_keys;
         }
 
 

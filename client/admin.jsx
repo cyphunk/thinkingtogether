@@ -213,20 +213,31 @@ var App = React.createClass({
 	handle_epoch_submit(e) {
 		console.log('App.handle_epoch_submit');
 		var {config, password} = this.state;
-		config.epoch.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
-		config.epoch.seed_length = parseFloat(this.seed_length.value);
-		config.epoch.pause_length = parseFloat(this.pause_length.value);
-		config.epoch.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
+		config.epoch.a.wait_for_bang_to_start = this.wait_for_bang_to_start.checked;
+		config.epoch.a.seed_length = parseFloat(this.seed_length.value);
+		config.epoch.a.pause_length = parseFloat(this.pause_length.value);
+		config.epoch.a.start_new_epoch_after_pause = this.start_new_epoch_after_pause.checked;
+
+		config.epoch.b.wait_for_bang_to_start = this.wait_for_bang_to_start_b.checked;
+		config.epoch.b.seed_length = parseFloat(this.seed_length_b.value);
+		config.epoch.b.pause_length = parseFloat(this.pause_length_b.value);
+		config.epoch.b.start_new_epoch_after_pause = this.start_new_epoch_after_pause_b.checked;
+
 		config.epoch.clear_votes_on_epoch = this.clear_votes_on_epoch.checked
 		config.epoch.clear_signals_on_epoch = this.clear_signals_on_epoch.checked
 		config.epoch.require_min_votes = parseFloat(this.require_min_votes.value)
 		config.epoch.sound_on_signal_chosen = this.sound_on_signal_chosen.checked
+
 		this.setState({ config });
-		socket.emit('admin:epoch', {password: password, epoch: config.epoch});
+		socket.emit('admin:epoch', {password: password, epoch: config.epoch });
 	},
 	handle_epoch_bang(e) {
 		console.log('App.handle_epoch_bang');
-		socket.emit('admin:epoch', {password: this.state.password, epoch: {start: true}} );
+		socket.emit('admin:epoch', {password: this.state.password, epoch: {start: true, gid: 'a'}} );
+	},
+	handle_epoch_bang_b(e) {
+		console.log('App.handle_epoch_bang_b');
+		socket.emit('admin:epoch', {password: this.state.password, epoch: {start: true, gid: 'b'}} );
 	},
 	handle_new_client_open(e){
 		console.log('App.handle_new_client_open')
@@ -303,39 +314,12 @@ var App = React.createClass({
 						</tr><tr>
 					<td></td><th><span>Epoch</span></th>
 						</tr><tr>
-							<td>
-							<input type="checkbox"
-								   defaultChecked={this.state.config.epoch.wait_for_bang_to_start}
-								   ref={(i) => this.wait_for_bang_to_start = i}
-							   	   onChange={this.handle_epoch_submit} />
-						    </td>
-							<td><span>Require "Start" button use to start</span></td>
-						</tr><tr>
-							<td><input type="text" size="4"
-							   defaultValue={this.state.config.epoch.seed_length}
-							   ref={(i) => this.seed_length = i}
-							   onBlur={this.handle_epoch_submit} /></td>
-							<td><span>Seed length (seconds)</span></td>
-						</tr><tr>
-							<td><input type="text" size="4"
-								 defaultValue={this.state.config.epoch.pause_length}
-								 ref={(i) => this.pause_length = i}
-							     onBlur={this.handle_epoch_submit}
-							     /></td>
-							<td><span>Pause length</span></td>
-						</tr><tr>
 							<td><input type="text" size="4"
 								 defaultValue={this.state.config.epoch.require_min_votes}
 								 ref={(i) => this.require_min_votes = i}
-							     onBlur={this.handle_epoch_submit}
-							     /></td>
+								 onBlur={this.handle_epoch_submit}
+								 /></td>
 							<td><span>Signal vote threshold</span></td>
-						</tr><tr>
-							<td><input type="checkbox"
-									 defaultChecked={this.state.config.epoch.start_new_epoch_after_pause}
-								 ref={(i) => this.start_new_epoch_after_pause = i}
-							     onChange={this.handle_epoch_submit} /></td>
-							<td><span>Start next epoch directly after pause ends</span></td>
 						</tr><tr>
 							<td><input type="checkbox"
 									 defaultChecked={this.state.config.epoch.sound_on_signal_chosen}
@@ -355,13 +339,77 @@ var App = React.createClass({
 							     onChange={this.handle_epoch_submit} /></td>
 							<td><span>Clear signals on each epoch</span></td>
 						</tr><tr>
-							<td></td><td><button onClick={this.handle_epoch_bang}>Start Epoch</button></td>
+
+					<td></td><th><span>Epoch Group A </span></th>
 						</tr><tr>
+							<td><input type="text" size="4"
+							   defaultValue={this.state.config.epoch.a.seed_length}
+							   ref={(i) => this.seed_length = i}
+							   onBlur={this.handle_epoch_submit} /></td>
+							<td><span>Seed length (seconds)</span></td>
+						</tr><tr>
+							<td><input type="text" size="4"
+								 defaultValue={this.state.config.epoch.a.pause_length}
+								 ref={(i) => this.pause_length = i}
+							     onBlur={this.handle_epoch_submit}
+							     /></td>
+							<td><span>Pause length</span></td>
+						</tr><tr>
+							<td>
+							<input type="checkbox"
+								   defaultChecked={this.state.config.epoch.a.wait_for_bang_to_start}
+								   ref={(i) => this.wait_for_bang_to_start = i}
+							   	   onChange={this.handle_epoch_submit} />
+						    </td>
+							<td><span>Require "Start" button use to start</span></td>
+						</tr><tr>
+							<td><input type="checkbox"
+									 defaultChecked={this.state.config.epoch.a.start_new_epoch_after_pause}
+								 ref={(i) => this.start_new_epoch_after_pause = i}
+							     onChange={this.handle_epoch_submit} /></td>
+							<td><span>Start next epoch directly after pause ends</span></td>
+						</tr><tr>
+							<td></td><td><button onClick={this.handle_epoch_bang}>Start Epoch</button></td>
+
+						</tr><tr><td></td><th><span>Epoch Group B</span></th>
+							</tr><tr>
+								<td><input type="text" size="4"
+								   defaultValue={this.state.config.epoch.b.seed_length}
+								   ref={(i) => this.seed_length_b = i}
+								   onBlur={this.handle_epoch_submit} /></td>
+								<td><span>Seed length (seconds)</span></td>
+							</tr><tr>
+								<td><input type="text" size="4"
+									 defaultValue={this.state.config.epoch.b.pause_length}
+									 ref={(i) => this.pause_length_b = i}
+									 onBlur={this.handle_epoch_submit}
+									 /></td>
+								<td><span>Pause length</span></td>
+							</tr><tr>
+								<td>
+								<input type="checkbox"
+									   defaultChecked={this.state.config.epoch.b.wait_for_bang_to_start}
+									   ref={(i) => this.wait_for_bang_to_start_b = i}
+									   onChange={this.handle_epoch_submit} />
+								</td>
+								<td><span>Require "Start" button use to start</span></td>
+							</tr><tr>
+								<td><input type="checkbox"
+										 defaultChecked={this.state.config.epoch.b.start_new_epoch_after_pause}
+									 ref={(i) => this.start_new_epoch_after_pause_b = i}
+									 onChange={this.handle_epoch_submit} /></td>
+								<td><span>Start next epoch directly after pause ends</span></td>
+							</tr><tr>
+								<td></td><td><button onClick={this.handle_epoch_bang_b}>Start Epoch B</button></td>
+							</tr><tr>
+							<td></td><td>...</td></tr><tr>
+
 							<td></td><td><button onClick={this.active_signals_clear}>Clear active signals</button>
 						</td>
 						</tr><tr>
 						<td></td><td><button onClick={this.handle_new_client_open}>Open extra client</button></td>
 						</tr>
+
 			</tbody></table>
 			<div id='advanced_toggle'>
 			<span onClick={function(e) {document.getElementById('advanced').style.display = 'block'}}>+</span>

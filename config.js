@@ -5,7 +5,7 @@ config.voter = {}
 config.stage = {}
 config.epoch = {}
 config.admin = {}
-config.debug = false // set to true to turn on client debuggin
+config.debug = false // set to true to turn on client debuggin. use ctrl+d for server
 
 //config.server.port = 8080
 config.server.port = 8081
@@ -49,12 +49,20 @@ config.stage.group_side_by_side = true; // adds float left css
 config.stage.show_in_chat_bubbles = false; // adds chatbubble css
 config.stage.show_message_for_n_sec = 30;
 
-config.epoch.wait_for_bang_to_start = true  // false then just go
-config.epoch.seed_length = 15  // time to vote
-config.epoch.pause_length = 2  // time before voter faded in
+config.epoch.a = {}
+config.epoch.a.wait_for_bang_to_start = true  // false then just go
+config.epoch.a.seed_length = 15  // time to vote
+config.epoch.a.pause_length = 2  // time before voter faded in
+config.epoch.a.start_new_epoch_after_pause = false    // if false forces admin bang.
+
+config.epoch.b = {}
+config.epoch.b.wait_for_bang_to_start = config.epoch.a.wait_for_bang_to_start
+config.epoch.b.seed_length = config.epoch.a.seed_length
+config.epoch.b.pause_length = config.epoch.a.pause_length
+config.epoch.b.start_new_epoch_after_pause = false    // if false forces admin bang.
+
 config.epoch.pause_forced = false  // when true client interface fade out all but count down
 // config.epoch.pause_show_progress = true  // show progress cont down
-config.epoch.start_new_epoch_after_pause = false    // if false forces admin bang.
 config.epoch.winner_switches_to_write_tab = true  // if true then whoever wens an epoch will be switched to the writer tab in their ui
 config.epoch.delete_winner = true
 config.epoch.require_min_votes = 0 // 0=BRUSSELS. set to 0 for no limit
@@ -62,6 +70,7 @@ config.epoch.clear_votes_on_epoch = true
 config.epoch.clear_signals_on_epoch = false; // false=BRUSSELS
 config.epoch.sound_on_signal_chosen = true // beep on send of epoch
 config.epoch.sound_on_signal_chosen_uri = '/beep.mp3' // in public dir
+config.epoch.sound_on_signal_chosen_uri_b = '/tap.wav' // for group b
 config.epoch.sound_on_seeding = false //BRUSSELS. play sound during seeding phase
 //config.epoch.sound_on_seeding_uri = '/countdown.mp3' // in public dir
 //config.epoch.sound_on_seeding_uri = '/familyfeud.mp3'  // in public dir

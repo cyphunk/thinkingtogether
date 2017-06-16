@@ -28,6 +28,11 @@ var App = React.createClass({
 					autoIncrement: false,
 					intervalTime: 0
 				},
+				progress_b: {
+					percent: -1,
+					autoIncrement: false,
+					intervalTime: 0
+				},
 				style: {
 					fontSize: 1, //em
 					paddingTop: 2 //em
@@ -149,47 +154,54 @@ var App = React.createClass({
 	},
 	_epoch_start(new_progress) {
 		console.log('App.epoch_start()');
-		var {progress, epoch_timer, epoch, group_mode} =  this.state;
+		var {progress, progress_b, epoch_timer, epoch, group_mode} =  this.state;
 		console.log('App.epoch_start - new progress', new_progress);
-		progress = new_progress
+		var target_gid = new_progress.gid
+		if (target_gid == 'a')
+			this.setState({progress: new_progress});
+		else if (target_gid == 'b')
+			this.setState({progress_b: new_progress});
+
 		// if (epoch_timer)
 		// 	window.clearTimeout(epoch_timer);
 		// epoch_timer = window.setTimeout(this.epoch_run_on_end,
 		// 				(epoch.seed_length+1)*1000);
 		// this.setState({progress, epoch_timer});
-		this.setState({progress});
-		// new method
-		progress_bar_a = document.getElementById('progress_bar_a')
-		progress_bar_a.innerHTML = ''
-		progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
-		    strokeWidth: 2,
-			color: '#99f'
-		});
-		progress_bar_a.animate(1, { duration: progress.intervalTime*100, }, function(){
-			console.log('progress_bar_a finished')
-		});
-		if (group_mode) {
+
+		if (group_mode && target_gid == 'b') {
 			progress_bar_b = document.getElementById('progress_bar_b')
 			progress_bar_b.innerHTML = ''
 			progress_bar_b = new ProgressBar.Line('#progress_bar_b', {
 			    strokeWidth: 2,
 				color: '#f99'
 			});
-			progress_bar_b.animate(1, {duration: progress.intervalTime*100}, function(){
+			progress_bar_b.animate(1, {duration: new_progress.intervalTime*100}, function(){
 				console.log('progress_bar_b finished')
 			});
 		}
-		// sound during seeding
-		if (config.epoch.sound_on_seeding) {
-			var sound = document.getElementById('epoch_seeding_sound')
+		else if (target_gid == 'a') {
+			// new method
+			progress_bar_a = document.getElementById('progress_bar_a')
+			progress_bar_a.innerHTML = ''
+			progress_bar_a = new ProgressBar.Line('#progress_bar_a', {
+			    strokeWidth: 2,
+				color: '#99f'
+			});
+			progress_bar_a.animate(1, { duration: new_progress.intervalTime*100 }, function(){
+				console.log('progress_bar_a finished')
+			});
+			// sound during seeding
+			if (config.epoch.sound_on_seeding) {
+				var sound = document.getElementById('epoch_seeding_sound')
 
-			if (sound.currentTime > config.epoch.sound_on_seeding_subtract_each_play+1)
-				sound.currentTime = sound.currentTime - config.epoch.sound_on_seeding_subtract_each_play
-			sound.play()
-			window.setTimeout(function(){
-				console.log('stop seeding sound')
-				document.getElementById('epoch_seeding_sound').pause()
-			},(progress.intervalTime*100)+1000) // -100 so other sound has time to spin up
+				if (sound.currentTime > config.epoch.sound_on_seeding_subtract_each_play+1)
+					sound.currentTime = sound.currentTime - config.epoch.sound_on_seeding_subtract_each_play
+				sound.play()
+				window.setTimeout(function(){
+					console.log('stop seeding sound')
+					document.getElementById('epoch_seeding_sound').pause()
+				},(progress.intervalTime*100)+1000) // -100 so other sound has time to spin up
+			}
 		}
   	},
 	_epoch_config(data) {
@@ -200,23 +212,27 @@ var App = React.createClass({
 		// re-render when require_min_votes changed
 		this.forceUpdate()
 	},
-	_epoch_stop_progress() {
+	_epoch_stop_progress(data) {
 		console.log('App.epoch_stop_progress()');
-		progress_bar_a = document.getElementById('progress_bar_a')
-		progress_bar_a.innerHTML = ''
-		if (this.state.group_mode) {
-			progress_bar_b = document.getElementById('progress_bar_b')
-			progress_bar_b.innerHTML = ''
-		}
+		var target_gid = data.gid
 		var progress = {
 			percent: -1,
 			autoIncrement: false,
 			intervalTime: 0
 		}
-		this.setState({ progress })
-		// sound during seeding
-		if (config.epoch.sound_on_seeding)
-			document.getElementById('epoch_seeding_sound').pause()
+		if (target_gid == 'a') {
+			progress_bar_a = document.getElementById('progress_bar_a')
+			progress_bar_a.innerHTML = ''
+			this.setState({ progress: progress })
+			// sound during seeding
+			if (config.epoch.sound_on_seeding)
+				document.getElementById('epoch_seeding_sound').pause()
+		}
+		if (target_gid == 'b' && this.state.group_mode) {
+			progress_bar_b = document.getElementById('progress_bar_b')
+			progress_bar_b.innerHTML = ''
+			this.setState({ progress_b: progress })
+		}
 	},
 	_epoch_active_signals(new_active_signals) {
 		console.log('App._epoch_active_signals()');
@@ -224,46 +240,63 @@ var App = React.createClass({
 		// get highest vote for group
 		var {signals, active_signals, votes} = this.state
 		if (new_active_signals.config.sound_on_signal_chosen) {
-			if (active_signals.a.text != new_active_signals.a.text) {
+			if (new_active_signals.config.gid == 'a' &&
+			    active_signals.a.text != new_active_signals.a.text) {
 				document.getElementById('epoch_sound').play()
 			}
 			else
 			if (this.state.group_mode &&
+				new_active_signals.config.gid == 'b' &&
 				active_signals.b.text != new_active_signals.b.text) {
-					document.getElementById('epoch_sound').play()
+					document.getElementById('epoch_sound_b').play()
 				}
 		}
 
 
-		active_signals = new_active_signals
+		active_signals.config = new_active_signals.config
+		if (new_active_signals.config.gid == 'a')
+			active_signals.a = new_active_signals.a
+		else if (new_active_signals.config.gid == 'b')
+			active_signals.b = new_active_signals.b
+
 		this.setState({active_signals})
 
 
-		// clear out
-		if (active_signals.a.user) {
+		// remove winning signal from the full list of signals
+		if (new_active_signals.config.gid == 'a' && active_signals.a.user) {
 			delete signals[active_signals.a.user.uid]//.text = '';
+			// delete all votes addressed at the winning user
 			Object.keys(votes).forEach((k) => {
 				if (votes[k] == active_signals.a.user.uid)
 					delete votes[k] })
-			if (this.state.group_mode && active_signals.b.user) {
-				delete signals[active_signals.b.user.uid]//.text = '';
-				Object.keys(votes).forEach((k) => {
-					if (votes[k] == active_signals.b.user.uid)
-						delete votes[k] })
-			}
-			this.setState({signals, votes})
 		}
-		// clear votes?
-		// shall we delete votes before next epoch
-		if (active_signals.config.clear_votes_on_epoch) {
-			this.setState({votes: {}})
+		if (new_active_signals.config.gid == 'b' && this.state.group_mode && active_signals.b.user) {
+			delete signals[active_signals.b.user.uid]//.text = '';
+			// delete all votes address at the winning user (votes )
+			Object.keys(votes).forEach((k) => {
+				if (votes[k] == active_signals.b.user.uid)
+					delete votes[k] })
 		}
-		if (active_signals.config.clear_signals_on_epoch) {
-			this.setState({signals: {}})
-		}
+		this.setState({signals, votes})
 
-		// TODO BUG BUG
-		// This could cause serious issues if there is more than one /stage up
+		// clear votes?
+		// shall we delete group votes before next epoch
+		var {users} = this.state
+		if (active_signals.config.clear_votes_on_epoch) {
+			Object.keys(votes).forEach((k) => {
+				// be sure to only delete votes for this gid epochs
+				if (users[k].gid == new_active_signals.config.gid)
+					delete votes[k] })
+			this.setState({votes})
+		}
+		// shall we delete group signals before next epoch
+		if (active_signals.config.clear_signals_on_epoch) {
+			Object.keys(votes).forEach((k) => {
+				// be sure to only delete votes for this gid epochs
+				if (users[k] && users[k].gid == new_active_signals.config.gid)
+					delete signals[k] })
+			this.setState({signals})
+		}
 
 	},
 	_epoch_active_signals_clear() {
@@ -418,6 +451,7 @@ var App = React.createClass({
 	                	{signal_group_b}
 	                </div>
 					<audio ref="epoch_sound" id="epoch_sound" src={config.epoch.sound_on_signal_chosen_uri}  />
+					<audio ref="epoch_sound" id="epoch_sound_b" src={config.epoch.sound_on_signal_chosen_uri_b}  />
 					<audio ref="epoch_seeding_sound" id="epoch_seeding_sound" src={config.epoch.sound_on_seeding_uri}  loop />
 					<div id="broadcast_message" style={{display: "none"}}></div>
 				</div>

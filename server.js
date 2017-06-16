@@ -209,7 +209,8 @@ var votes = (function () {
 	}
 }())
 // dependent highly on config.epoch and io
-var epoch = (function () {
+var Epoch = function (gid) {
+	var gid = gid
 	var timer = null
 	var pause_timer = null
 	var active_signals = { a: {text: '', user: {uid: null, name: ''}},
@@ -223,6 +224,9 @@ var epoch = (function () {
 	var reset = function() {
 		active_signals = { a: {text: '', user: {uid: null, name: ''}},
 		b: {text: '', user: {uid: null, name: ''}} }
+	}
+	var change_gid = function(g) {
+		gid = g
 	}
 	var _run_on_start_end = function () {
 		debug_log('epoch._run_on_end()');
@@ -298,6 +302,7 @@ var epoch = (function () {
 			clear_votes_on_epoch: config.epoch.clear_votes_on_epoch,
 			clear_signals_on_epoch: config.epoch.clear_signals_on_epoch,
 			sound_on_signal_chosen: config.epoch.sound_on_signal_chosen,
+			gid: gid
 		}
 		debug_log('epoch._set_active_signal - active', active_signals);
 		//////////////////////////////////////////////
@@ -306,19 +311,19 @@ var epoch = (function () {
 	}
 	var _start_pause = function () {
 		debug_log('epoch._start_pause()');
-		debug_log('epoch._start_pause - time', config.epoch.pause_length);
+		debug_log('epoch._start_pause - time', config.epoch[gid].pause_length);
 		if (config.epoch.pause_forced) {
 			debug_log('TODO: handle pause_forced')
 		}
 		if (pause_timer)
 			clearTimeout(pause_timer);
 		pause_timer = setTimeout(_run_on_pause_end,
-							config.epoch.pause_length*1000);
-		io.emit('epoch:stop_progress')
+							config.epoch[gid].pause_length*1000);
+		io.emit('epoch:stop_progress', {gid: gid})
 	}
 	var _run_on_pause_end = function () {
 		debug_log('epoch._run_on_pause_end()');
-		if (config.epoch.start_new_epoch_after_pause) {
+		if (config.epoch[gid].start_new_epoch_after_pause) {
 			start()
 		}
 	}
@@ -331,10 +336,11 @@ var epoch = (function () {
 			debug_log('epoch.start - no master_id');
 			return
 		}
-		debug_log('epoch.start - time', config.epoch.seed_length);
+		debug_log('epoch.start - time', config.epoch[gid].seed_length);
 		var progress = { percent: 0,
 						 autoIncrement: true,
-						 intervalTime: config.epoch.seed_length*10 }
+						 intervalTime: config.epoch[gid].seed_length*10,
+					  	 gid: gid }
 		debug_log('epoch.start - progress', progress);
 		////////////////////////////////
 		io.emit('epoch:start', progress)
@@ -342,7 +348,7 @@ var epoch = (function () {
 		if (timer)
 			clearTimeout(timer);
 		timer = setTimeout(_run_on_start_end,
-						   (config.epoch.seed_length+1)*1000);
+						   (config.epoch[gid].seed_length+1)*1000);
 	}
 	var set_master_id = function (id) {
 		debug_log('epoch.set_master_id()');
@@ -360,9 +366,15 @@ var epoch = (function () {
 		get_active_signals: get_active_signals,
 		set_master_id: set_master_id,
 		get_master_id: get_master_id,
-		reset: reset
+		reset: reset,
+		change_gid: change_gid
 	}
-}())
+}
+var epoch = new Epoch('a')
+// oh so ugly but this is how we can quickly maybe add a epoch timer split between group a and group b
+var epoch_b = new Epoch('b')
+// var epoch_b = Object.assign({},epoch);
+// epoch_b.change_gid('b')
 
 var save_state = function() {
 	console.log('saving state in ./data')
@@ -407,6 +419,8 @@ if (process.stdout.isTTY) {
 			console.log("\nepoch master_id:", epoch.get_master_id())
 			console.log("epoch config:\n", config.epoch)
 			console.log("epoch active signals:", epoch.get_active_signals())
+			console.log("\nepoch_b master_id:", epoch_b.get_master_id())
+			console.log("epoch_b active signals:", epoch_b.get_active_signals())
 			console.log("\nstage:\n", config.stage)
 		}
 
@@ -445,6 +459,7 @@ var socket = function (socket) {
 	if (is_stage || is_monitor) {
 		if (is_stage) {
 			epoch.set_master_id(socket.id)
+			epoch_b.set_master_id(socket.id)
 		}
 		socket.emit('init', {
 			users: users.get(),
@@ -454,8 +469,10 @@ var socket = function (socket) {
 			stage: config.stage,
 			active_signals: epoch.get_active_signals()
 		})
-		if (!config.epoch.wait_for_bang_to_start)
-		epoch.start()
+		if (!config.epoch.a.wait_for_bang_to_start)
+			epoch.start()
+		if (group_mode && !config.epoch.b.wait_for_bang_to_start)
+			epoch_b.start()
 	}
 	else {
 		// send the new user their name and current data
@@ -564,6 +581,7 @@ var socket = function (socket) {
 			signals.reset()
 			votes.reset()
 			epoch.reset()
+			epoch_b.reset()
 			sessionid = parseInt(Math.random() *10000)
 			socket.broadcast.emit('admin:command', {method: 'reload_page'})
 		}
@@ -583,7 +601,10 @@ var socket = function (socket) {
 
 		if (data.epoch && data.epoch.start &&
 			data.epoch.start == true) {
-			epoch.start()
+				if (data.epoch.gid == 'a')
+					epoch.start()
+				else if (data.epoch.gid == 'b')
+					epoch_b.start()
 		}
 		else
 		if (data.epoch) {
@@ -593,6 +614,7 @@ var socket = function (socket) {
 		else
 		if (data.active_signals_clear == true) {
 			epoch.reset()
+			epoch_b.reset()
 			io.emit('epoch:active_signals_clear')
 		}
 	})
