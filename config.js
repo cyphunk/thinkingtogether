@@ -7,7 +7,8 @@ config.epoch = {}
 config.admin = {}
 config.debug = false // set to true to turn on client debuggin
 
-config.server.port = 8080
+//config.server.port = 8080
+config.server.port = 8081
 config.server.mode = 'production'  //NODE_ENV production or development
 config.server.load_data_files = false // load .data/*.json on start?
 
@@ -28,13 +29,16 @@ config.writer.submit_on_period = false // BRUSSELS
 config.writer.max_chars = 300 // BRUSSELS
 
 config.writer.show_submit_button = true // true=BRUSSELS
+config.writer.writer_show_thankyou = true // true=FRASCATI2
 
 config.voter.show_joined_messages = false
 config.voter.prevent_vote_self = true
 config.voter.min_signal_length = 1  // len chars. 0 to show empty. 1 to allow char only. 3etc for forcing sentences
 config.voter.show_n_signals = 5 //
 config.voter.reorder_wait_time = 7 //
-config.voter.enabled = false // false=BRUSSELS. if false the vote tab isnt shown
+config.voter.enabled = true // false=BRUSSELS. if false the vote tab isnt shown
+// attempt at fixing the glitchy update issue? FRASCATI2
+config.voter.update_list_ever_n_milseconds = 7000;
 
 config.stage.show_signal_activity = true  // false means only the current signal is shown
 config.stage.show_vote_count = false
@@ -58,7 +62,7 @@ config.epoch.clear_votes_on_epoch = true
 config.epoch.clear_signals_on_epoch = false; // false=BRUSSELS
 config.epoch.sound_on_signal_chosen = true // beep on send of epoch
 config.epoch.sound_on_signal_chosen_uri = '/beep.mp3' // in public dir
-config.epoch.sound_on_seeding = true //BRUSSELS. play sound during seeding phase
+config.epoch.sound_on_seeding = false //BRUSSELS. play sound during seeding phase
 //config.epoch.sound_on_seeding_uri = '/countdown.mp3' // in public dir
 //config.epoch.sound_on_seeding_uri = '/familyfeud.mp3'  // in public dir
 //config.epoch.sound_on_seeding_uri = '/johnroberts.mp3'  // in public dir

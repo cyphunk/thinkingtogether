@@ -104,7 +104,8 @@ button.vote_button {
     _background-position: 0px 0px;  /* equivalent to 'top left' */
 }
 button.modify_button {
-    background: url('/img/edit_white_sm.png') no-repeat 0px center;
+    _background: url('/img/edit_white_sm.png') no-repeat 0px center;
+    background: url('/img/edit_white_sm_26.png') no-repeat 0px center;
     font-family: inherit;
     font-size: inherit;
     color: #000;

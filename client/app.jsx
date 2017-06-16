@@ -81,15 +81,18 @@ var Writer = React.createClass({
             text : this.props.signal //.replace(/\n|\./g,'')
         });
         // thank you message
-        var message = "<br><small>thank you</small><br><div style='font-size:0.5em'>you can change your message at any time</div>"
-        if (broadcast_message_timer)
-            window.clearTimeout(broadcast_message_timer)
-        var elem = document.getElementById('broadcast_message')
-        elem.innerHTML = message;
-        elem.style.display = 'block'
-        broadcast_message_timer = window.setTimeout(function(){
-            document.getElementById('broadcast_message').style.display='none'
-        }, 6000)
+        if (config.writer.writer_show_thankyou) {
+            config.writer_writer_show_thankyou = false;
+            var message = "<br><small>thank you</small><br><div style='font-size:0.5em'>you can change your message at any time</div>"
+            if (broadcast_message_timer)
+                window.clearTimeout(broadcast_message_timer)
+            var elem = document.getElementById('broadcast_message')
+            elem.innerHTML = message;
+            elem.style.display = 'block'
+            broadcast_message_timer = window.setTimeout(function(){
+                document.getElementById('broadcast_message').style.display='none'
+            }, 6000)
+        }
     },
     handle_change(e) {
         debug_log('Writer handle_change - match .', e.target.value.match(/\. *$/g))
@@ -199,6 +202,9 @@ var Signal = React.createClass({
 	}
 });
 // percentage test http://jsfiddle.net/mjEDY/99/
+
+// attempt at fixing the glitchy update issue? FRASCATI2
+var voter_update_last_timestamp = 0;
 
 var Voter = React.createClass({
     add_vote_count_to_signals(keys) {
@@ -313,13 +319,24 @@ var Voter = React.createClass({
         var signal_keys = Object.keys(signals);
         // add vote_count to signals[]
         this.add_vote_count_to_signals(signal_keys)
+
         // sort keys by votes and groups
-        var key_groups = this.organize_signal_keys(signal_keys);
-        debug_log('Voter render - key_groups', key_groups, key_groups.a);
-        if (this.props.group_mode)
-            var keys = this.set_signal_order(key_groups[this.props.user.gid]);
-        else
-            var keys = this.set_signal_order(key_groups.a);
+        // but only if a certain amount of time has passed
+        var now = new Date().getTime();
+        // timeout for updating vote list has passed. Update everything, else just keep data but do not rearrange
+        if (now > voter_update_last_timestamp+config.voter.update_list_ever_n_milseconds) {
+            var key_groups = this.organize_signal_keys(signal_keys);
+            if (this.props.group_mode)
+                var keys = this.set_signal_order(key_groups[this.props.user.gid]);
+            else
+                var keys = this.set_signal_order(key_groups.a);
+            voter_update_last_timestamp = now;
+        }
+        else {
+            var keys = signal_keys;
+        }
+
+
         debug_log('Voter render - keys after order', keys)
 
         var my_signal = null;
