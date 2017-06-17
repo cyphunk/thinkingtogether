@@ -1,4 +1,7 @@
 var n_clients = 15;
+var server = 'http://crowdwise.cloudno.de'
+//var server = 'http://localhost:8081'
+
 var io = require('socket.io-client');
 
 var clients = []
@@ -6,7 +9,7 @@ var starttime = new Date().getTime()
 
 function start(i) {
     console.log(i)
-    var socket = io.connect('http://localhost:8081', {
+    var socket = io.connect(server, {
                 reconnect: true,
                 extraHeaders: {referer: '/'}
             }
